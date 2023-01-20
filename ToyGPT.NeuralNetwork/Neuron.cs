@@ -4,8 +4,11 @@ namespace ToyGPT.NeuralNetwork
 {
 	public static class Neuron
 	{
-		public static float RunNeuron(ReadOnlySpan<float> inputs, ReadOnlySpan<float> weights, float bias)
+		public static float Forward(ReadOnlySpan<float> inputs, ReadOnlySpan<float> weights, float bias)
 		{
+			if (inputs.Length != weights.Length)
+				throw new ArgumentException(null, nameof(weights));
+			
 			var sum = 0.0f;
 
 			var len = inputs.Length;

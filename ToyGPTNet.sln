@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToyGPT", "ToyGPT\ToyGPT.csproj", "{5D375618-345E-4EED-8BD2-354E3E68A1E6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5D375618-345E-4EED-8BD2-354E3E68A1E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D375618-345E-4EED-8BD2-354E3E68A1E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D375618-345E-4EED-8BD2-354E3E68A1E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D375618-345E-4EED-8BD2-354E3E68A1E6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FF94F994-9C41-4CB8-B351-D7559A20F176}
+	EndGlobalSection
+EndGlobal

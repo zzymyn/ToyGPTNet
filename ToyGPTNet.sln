@@ -3,7 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToyGPT", "ToyGPT\ToyGPT.csproj", "{5D375618-345E-4EED-8BD2-354E3E68A1E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToyGPT", "ToyGPT\ToyGPT.csproj", "{5D375618-345E-4EED-8BD2-354E3E68A1E6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToyGPT.Lib", "ToyGPT.Lib\ToyGPT.Lib.csproj", "{FEC83309-0501-476B-8E55-DD486443DA23}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CFB14BC1-3A20-4BDC-9F9A-D3ACE7035C1D}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToyGPT.NeuralNetwork", "ToyGPT.NeuralNetwork\ToyGPT.NeuralNetwork.csproj", "{23317E2B-6F60-4C74-9826-02F6D9BC2CED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +24,14 @@ Global
 		{5D375618-345E-4EED-8BD2-354E3E68A1E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D375618-345E-4EED-8BD2-354E3E68A1E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D375618-345E-4EED-8BD2-354E3E68A1E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEC83309-0501-476B-8E55-DD486443DA23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEC83309-0501-476B-8E55-DD486443DA23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEC83309-0501-476B-8E55-DD486443DA23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEC83309-0501-476B-8E55-DD486443DA23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23317E2B-6F60-4C74-9826-02F6D9BC2CED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23317E2B-6F60-4C74-9826-02F6D9BC2CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23317E2B-6F60-4C74-9826-02F6D9BC2CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23317E2B-6F60-4C74-9826-02F6D9BC2CED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

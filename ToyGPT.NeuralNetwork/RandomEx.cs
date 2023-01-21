@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ToyGPT.NeuralNetwork
 {
-	internal static class RandomEx
+	public static class RandomEx
 	{
 		public static double NextNormal(this Random rng)
 		{

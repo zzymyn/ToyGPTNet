@@ -7,8 +7,6 @@ namespace ToyGPT
 {
 	class Program
 	{
-		private const int BatchSize = 3;
-
 		private static async Task Main(string[] args)
 		{
 			var fileArg = new Argument<FileInfo>("file", "The file to read");
@@ -28,38 +26,16 @@ namespace ToyGPT
 
 				var activation = new ActivationReLU();
 
-				var X = new float[BatchSize, 4] {
-					{ 1, 2, 3, 2.5f },
-					{ 2, 5, -1, 2 },
-					{ -1.5f, 2.7f, 3.3f, -0.8f },
-				};
+				var (X, y) = CreateData(100, 3, rng);
 
-				var layer0 = LayerDense.CreateNewRandom(4, 3, rng);
-				var layer1 = LayerDense.CreateNewRandom(3, 3, rng);
+				var layer0 = LayerDense.CreateNewRandom(2, 5, rng);
 
-				var values1 = new float[BatchSize, layer0.NeuronCount];
-				var values2 = new float[BatchSize, layer1.NeuronCount];
+				var values1 = new float[300, layer0.NeuronCount];
 
 				layer0.Forward(X, values1);
 				activation.Forward(values1);
-				layer1.Forward(values1, values2);
-				activation.Forward(values2);
 
-				console.Write("[");
-				for (int y = 0; y < values2.GetLength(0); ++y)
-				{
-					if (y != 0)
-						console.Write(",\n ");
-					console.Write("[");
-					for (int x = 0; x < values2.GetLength(1); ++x)
-					{
-						if (x != 0)
-							console.Write(", ");
-						console.Write(values2[y, x].ToString());
-					}
-					console.Write("]");
-				}
-				console.WriteLine("]");
+				Print2D(console, values1);
 
 				//var weights1 = new[] {
 				//	new float [] { 0.1f, -0.14f, 0.5f },
@@ -96,6 +72,45 @@ namespace ToyGPT
 			});
 
 			await rootCommand.InvokeAsync(args);
+		}
+
+		private static void Print2D(IConsole console, float[,] a)
+		{
+			console.Write("[");
+			for (int y = 0; y < a.GetLength(0); ++y)
+			{
+				if (y != 0)
+					console.Write(",\n ");
+				console.Write("[");
+				for (int x = 0; x < a.GetLength(1); ++x)
+				{
+					if (x != 0)
+						console.Write(", ");
+					console.Write(a[y, x].ToString());
+				}
+				console.Write("]");
+			}
+			console.WriteLine("]");
+		}
+
+		private static (float[,] X, byte[] y) CreateData(int points, int classes, Random rng)
+		{
+			var len = points * classes;
+			var X = new float[len, 2];
+			var y = new byte[len];
+
+			for (int i = 0; i < len; ++i)
+			{
+				var classNumber = i / points;
+				var classI = i - classNumber * points;
+				var r = (float)classI / points;
+				var t = classNumber * 4 + r * 4 + 0.2f * (float)rng.NextNormal();
+				X[i, 0] = r * (float)Math.Sin(2.5 * t);
+				X[i, 1] = r * (float)Math.Cos(2.5 * t);
+				y[i] = (byte)classNumber;
+			}
+
+			return (X, y);
 		}
 	}
 }

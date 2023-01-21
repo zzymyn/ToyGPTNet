@@ -24,16 +24,21 @@ namespace ToyGPT
 
 				var rng = new Random(42);
 
-				var activation = new ActivationReLU();
+				var relu = new ActivationReLU();
+				var softmax = new ActivationSoftMax();
 
 				var (X, y) = CreateData(100, 3, rng);
 
-				var layer0 = LayerDense.CreateNewRandom(2, 5, rng);
+				var layer0 = LayerDense.CreateNewRandom(2, 3, rng);
+				var layer1 = LayerDense.CreateNewRandom(3, 3, rng);
 
-				var values1 = new float[300, layer0.NeuronCount];
+				var values0 = new float[300, layer0.NeuronCount];
+				var values1 = new float[300, layer1.NeuronCount];
 
-				layer0.Forward(X, values1);
-				activation.Forward(values1);
+				layer0.Forward(X, values0);
+				relu.Forward(values0);
+				layer1.Forward(values0, values1);
+				softmax.Forward(values1);
 
 				Print2D(console, values1);
 

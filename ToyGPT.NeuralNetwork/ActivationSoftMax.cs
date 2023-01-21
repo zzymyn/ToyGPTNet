@@ -11,19 +11,35 @@ namespace ToyGPT.NeuralNetwork
 	{
 		public void Forward(Span2D<float> inputs)
 		{
-			var sum = 0.0f;
-
-			foreach (ref var a in inputs)
+			var rMax = inputs.Height;
+			for (int r = 0; r < rMax; ++r)
 			{
-				a = (float)Math.Exp(a);
-				sum += a;
-			}
+				var row = inputs.GetRowSpan(r);
 
-			var invSum = 1.0f / sum;
+				var max = float.MinValue;
+				foreach (var a in row)
+				{
+					if (a > max)
+						max = a;
+				}
 
-			foreach (ref var a in inputs)
-			{
-				a *= invSum;
+				var sum = 0.0f;
+
+				foreach (ref var a in row)
+				{
+					a = (float)Math.Exp(a - max);
+					sum += a;
+				}
+
+				if (sum != 0.0f)
+				{
+					var invSum = 1.0f / sum;
+
+					foreach (ref var a in row)
+					{
+						a *= invSum;
+					}
+				}
 			}
 		}
 	}

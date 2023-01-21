@@ -13,5 +13,21 @@ namespace ToyGPT.NeuralNetwork.Tests
 			act.Forward(values);
 			Assert.That(values, Is.EqualTo(expected).Within(0.00001f));
 		}
+
+		[Test]
+		public void Test2()
+		{
+			var values = new float[,] {
+				{ 0, 2, -1, 3.3f, -2.7f, 1.1f, 2.2f, -100f },
+				{ 1, -1, 1, -1, 1, -1, 1, -1 },
+			};
+			var expected = new float[,] {
+				{ 0, 2, 0, 3.3f, 0, 1.1f, 2.2f, 0 },
+				{ 1, 0, 1, 0, 1, 0, 1, 0 },
+			};
+			var act = new ActivationReLU();
+			act.Forward(values);
+			Assert.That(values, Is.EqualTo(expected).Within(0.00001f));
+		}
 	}
 }

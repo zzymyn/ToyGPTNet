@@ -53,9 +53,9 @@ namespace ToyGPT.NeuralNetwork
 
 		public void Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> weights, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs, Span2D<float> dWeights, Span<float> dBiases)
 		{
-			Validate.ArraysSameSize(inputs, dInputs);
 			Validate.ArraySize(inputs, dValues.Height, InputCount);
 			Validate.ArraySize(dValues, inputs.Height, NeuronCount);
+			Validate.ArraySize(dInputs, inputs.Height, InputCount);
 			Validate.ArraySize(weights, NeuronCount, InputCount);
 			Validate.ArraysSameSize(weights, dWeights);
 			Validate.ArraySize(dBiases, NeuronCount);

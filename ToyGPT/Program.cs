@@ -7,88 +7,93 @@ namespace ToyGPT
 {
 	class Program
 	{
+		const int HiddenLayerNeurons = 8;
+
 		private static async Task Main(string[] args)
 		{
-			var fileArg = new Argument<FileInfo>("file", "The file to read");
-
 			var rootCommand = new RootCommand
 			{
-				fileArg
 			};
 
 			rootCommand.SetHandler(async context =>
 			{
 				var ct = context.GetCancellationToken();
-				var file = context.ParseResult.GetValueForArgument(fileArg);
 				var console = context.Console;
 
 				var rng = new Random(42);
 
+				var (data, expected) = CreateBlobs(100, 3, rng);
 				var relu = new ActivationReLU();
-				var softmax = new ActivationSoftMax();
+				var softmaxLoss = new ActivationLossSoftMaxCategoricalCrossEntropy();
+				var layer0 = new LayerDense(2, HiddenLayerNeurons);
+				var layer1 = new LayerDense(HiddenLayerNeurons, 3);
 
-				var (X, y) = CreateData(100, 3, rng);
-
-				var layer0 = new LayerDense(2, 3);
-				var weights0 = Weights.CreateRandomWeights(2, 3, rng);
-				var biases0 = new float[3];
-
-				var layer1 = new LayerDense(3, 3);
-				var weights1 = Weights.CreateRandomWeights(3, 3, rng);
+				var weights0 = Weights.CreateRandomWeights(2, HiddenLayerNeurons, rng);
+				var biases0 = new float[8];
+				var weights1 = Weights.CreateRandomWeights(HiddenLayerNeurons, 3, rng);
 				var biases1 = new float[3];
-
-				var values00 = new float[300, layer0.NeuronCount];
-				var values01 = new float[300, layer0.NeuronCount];
-				var values10 = new float[300, layer1.NeuronCount];
-				var values11 = new float[300, layer1.NeuronCount];
-
-				layer0.Forward(X, weights0, biases0, values00);
-				relu.Forward(values00, values01);
-				layer1.Forward(values01, weights1, biases1, values10);
-				softmax.Forward(values10, values11);
-
+				var values0 = new float[300, HiddenLayerNeurons];
+				var values0Act = new float[300, HiddenLayerNeurons];
+				var values1 = new float[300, 3];
+				var values1Act = new float[300, 3];
 				var losses = new float[300];
-				var cce = new LossCategoricalCrossEntropy();
-				cce.Forward(values11, y, losses);
-				var avgLoss = losses.Average();
+				var dInputs1Act = new float[300, 3];
+				var dInputs1 = new float[300, HiddenLayerNeurons];
+				var dWeights1 = new float[3, HiddenLayerNeurons];
+				var dBiases1 = new float[3];
+				var dInputs0Act = new float[300, HiddenLayerNeurons];
+				var dInputs0 = new float[300, 2];
+				var dWeights0 = new float[HiddenLayerNeurons, 2];
+				var dBiases0 = new float[HiddenLayerNeurons];
+				var learningFactor = 0.01f;
 
-				Print2D(console, values11);
+				for (long loopCount = 0; true; ++loopCount)
+				{
+					layer0.Forward(data, weights0, biases0, values0);
+					relu.Forward(values0, values0Act);
+					layer1.Forward(values0Act, weights1, biases1, values1);
+					softmaxLoss.Forward(values1, expected, values1Act, losses);
+					var avgLoss = losses.Average();
+					var accuracy = AccuracyCategorical.Compute(values1Act, expected);
 
-				//var weights1 = new[] {
-				//	new float [] { 0.1f, -0.14f, 0.5f },
-				//	new float [] { -0.5f, 0.12f, -0.33f },
-				//	new float [] { -0.44f, 0.73f, -0.13f },
-				//};
-				//var bias1 = new float[] { -1, 2, -0.5f };
+					console.WriteLine($"{loopCount}: {avgLoss:0.0000} - {accuracy * 100:#0.0}%");
 
-				//var values2 = new float[values1.Length][];
-				//for (int i = 0; i < values1.Length; ++i)
-				//{
-				//	values2[i] = new float[weights1.Length];
-				//}
+					softmaxLoss.Backward(expected, values1Act, dInputs1Act);
+					layer1.Backward(values0Act, weights1, dInputs1Act, dInputs1, dWeights1, dBiases1);
+					relu.Backward(values0Act, dInputs1, dInputs0Act);
+					layer0.Backward(data, weights0, dInputs0Act, dInputs0, dWeights0, dBiases0);
 
-				//for (int i = 0; i < values0.Length; ++i)
-				//{
-				//	var input = values0[i];
-				//	for (int bi = 0; bi < bias0.Length; ++bi)
-				//	{
-				//		values1[i][bi] = Neuron.RunNeuron(input, weights0[bi], bias0[bi]);
-				//	}
-				//}
+					for (int y = 0; y < weights0.GetLength(0); ++y)
+						for (int x = 0; x < weights0.GetLength(1); ++x)
+							weights0[y, x] -= learningFactor * dWeights0[y, x];
+					for (int i = 0; i < biases0.Length; ++i)
+						biases0[i] -= learningFactor * dBiases0[i];
+					for (int y = 0; y < weights1.GetLength(0); ++y)
+						for (int x = 0; x < weights1.GetLength(1); ++x)
+							weights1[y, x] -= learningFactor * dWeights1[y, x];
+					for (int i = 0; i < biases1.Length; ++i)
+						biases1[i] -= learningFactor * dBiases1[i];
+				}
 
-				//for (int i = 0; i < values1.Length; ++i)
-				//{
-				//	var input = values1[i];
-				//	for (int bi = 0; bi < bias1.Length; ++bi)
-				//	{
-				//		values2[i][bi] = Neuron.RunNeuron(input, weights1[bi], bias1[bi]);
-				//	}
-				//}
-
-				//console.WriteLine($"{string.Join(", ", values1.Select(a => a.ToString()))}");
+				//Print2D(console, dWeights0);
+				//Print(console, dBiases0);
+				//Print2D(console, dWeights1);
+				//Print(console, dBiases1);
 			});
 
 			await rootCommand.InvokeAsync(args);
+		}
+
+		private static void Print(IConsole console, float[] a)
+		{
+			console.Write("[");
+			for (int x = 0; x < a.Length; ++x)
+			{
+				if (x != 0)
+					console.Write(", ");
+				console.Write(a[x].ToString());
+			}
+			console.WriteLine("]");
 		}
 
 		private static void Print2D(IConsole console, float[,] a)
@@ -110,7 +115,25 @@ namespace ToyGPT
 			console.WriteLine("]");
 		}
 
-		private static (float[,] X, int[] y) CreateData(int points, int classes, Random rng)
+		private static (float[,] X, int[] y) CreateBlobs(int points, int classes, Random rng)
+		{
+			var len = points * classes;
+			var X = new float[len, 2];
+			var y = new int[len];
+
+			for (int i = 0; i < len; ++i)
+			{
+				var classNumber = i / points;
+				var classI = i - classNumber * points;
+				X[i, 0] = 3 * classNumber + (float)rng.NextNormal();
+				X[i, 1] = (float)rng.NextNormal();
+				y[i] = classNumber;
+			}
+
+			return (X, y);
+		}
+
+		private static (float[,] X, int[] y) CreateSpiral(int points, int classes, Random rng)
 		{
 			var len = points * classes;
 			var X = new float[len, 2];

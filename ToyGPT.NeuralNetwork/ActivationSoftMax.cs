@@ -57,17 +57,17 @@ namespace ToyGPT.NeuralNetwork
 			}
 		}
 
-		public void Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs)
+		public void Backward(ReadOnlySpan2D<float> outputs, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs)
 		{
-			Validate.ArraysSameSize(inputs, dValues);
-			Validate.ArraysSameSize(inputs, dInputs);
+			Validate.ArraysSameSize(outputs, dValues);
+			Validate.ArraysSameSize(outputs, dInputs);
 
-			var yMax = inputs.Height;
-			var xMax = inputs.Width;
-			var iMax = inputs.Width;
+			var yMax = outputs.Height;
+			var xMax = outputs.Width;
+			var iMax = outputs.Width;
 			for (int y = 0; y < yMax; ++y)
 			{
-				var rowIn = inputs.GetRowSpan(y);
+				var rowIn = outputs.GetRowSpan(y);
 				var rowDVal = dValues.GetRowSpan(y);
 				var rowDIn = dInputs.GetRowSpan(y);
 

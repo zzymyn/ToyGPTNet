@@ -1,8 +1,7 @@
 {
   "profiles": {
     "ToyGPT": {
-      "commandName": "Project",
-      "commandLineArgs": "$(SolutionDir)/Data/input.txt"
+      "commandName": "Project"
     }
   }
 }

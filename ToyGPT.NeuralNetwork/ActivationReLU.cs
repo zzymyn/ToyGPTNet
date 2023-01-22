@@ -12,10 +12,7 @@ namespace ToyGPT.NeuralNetwork
 	{
 		public void Forward(ReadOnlySpan2D<float> inputs, Span2D<float> outputs)
 		{
-			if (inputs.Height != outputs.Height)
-				throw new ArgumentException(null, nameof(outputs));
-			if (inputs.Width != outputs.Width)
-				throw new ArgumentException(null, nameof(inputs));
+			Validate.ArraysSameSize(inputs, outputs);
 
 			var rMax = inputs.Height;
 			var iMax = inputs.Width;
@@ -28,6 +25,26 @@ namespace ToyGPT.NeuralNetwork
 				{
 					var v = rowIn[i];
 					rowOut[i] = (v < 0) ? 0 : v;
+				}
+			}
+		}
+
+		public void Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs)
+		{
+			Validate.ArraysSameSize(inputs, dValues);
+			Validate.ArraysSameSize(inputs, dInputs);
+
+			var rMax = inputs.Height;
+			var iMax = inputs.Width;
+			for (int r = 0; r < rMax; ++r)
+			{
+				var rowIn = inputs.GetRowSpan(r);
+				var rowDVal = dValues.GetRowSpan(r);
+				var rowDIn = dInputs.GetRowSpan(r);
+
+				for (int i = 0; i < iMax; ++i)
+				{
+					rowDIn[i] = (rowIn[i] <= 0) ? 0 : rowDVal[i];
 				}
 			}
 		}

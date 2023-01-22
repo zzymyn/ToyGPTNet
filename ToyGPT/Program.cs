@@ -36,7 +36,7 @@ namespace ToyGPT
 
 				for (long loopCount = 0; true; ++loopCount)
 				{
-					nn.Train(data, expected, learningFactor, out var b, out var a);
+					nn.Train(data, expected, 0.01f, out var b, out var a);
 					console.WriteLine($"{loopCount}: {b:0.000000} - {a * 100:#0.000}%");
 				}
 			});

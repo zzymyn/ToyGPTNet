@@ -12,21 +12,20 @@ namespace ToyGPT.NeuralNetwork
 	{
 		public void Forward(ReadOnlySpan2D<float> inputs, ReadOnlySpan<int> categories, Span<float> losses)
 		{
-			if (inputs.Height != categories.Length)
-				throw new ArgumentException(null, nameof(categories));
-			if (inputs.Height != losses.Length)
-				throw new ArgumentException(null, nameof(losses));
+			Validate.ArraySize(categories, inputs.Height);
+			Validate.ArraySize(losses, inputs.Height);
 
-			var rMax = inputs.Height;
-			for (int r = 0; r < rMax; ++r)
+			var yMax = inputs.Height;
+			var xMax = inputs.Width;
+			for (int y = 0; y < yMax; ++y)
 			{
-				var inRow = inputs.GetRowSpan(r);
-				var category = categories[r];
+				var rowIn = inputs.GetRowSpan(y);
+				var category = categories[y];
 
-				if (category < 0 || category >= inRow.Length)
+				if (category < 0 || category >= xMax)
 					throw new ArgumentException(null, nameof(categories));
 
-				var v = inRow[category];
+				var v = rowIn[category];
 
 				// because log(0) is undefined, we clamp the vales to be greater than 1e-7
 				// to avoid this problem, we also clamp the values to be less than 1 - 1e-7
@@ -34,7 +33,34 @@ namespace ToyGPT.NeuralNetwork
 				
 				v = Math.Clamp(v, 1e-7f, 1.0f - 1e-7f);
 
-				losses[r] = -MathF.Log(v);
+				losses[y] = -MathF.Log(v);
+			}
+		}
+
+		public void Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan<int> categories, Span2D<float> dInputs)
+		{
+			Validate.ArraySize(categories, inputs.Height);
+			Validate.ArraysSameSize(inputs, dInputs);
+
+			var yMax = dInputs.Height;
+			var xMax = dInputs.Width;
+			for (int y = 0; y < yMax; ++y)
+			{
+				var rowIn = inputs.GetRowSpan(y);
+				var rowDIn = dInputs.GetRowSpan(y);
+				var category = categories[y];
+
+				if (category < 0 || category > xMax)
+					throw new ArgumentException(null, nameof(categories));
+
+				for (int x = 0; x < xMax; ++x)
+				{
+					rowDIn[x] = 0.0f;
+				}
+
+				var dVal = rowIn[category];
+
+				rowDIn[category] = ((dVal != 0.0f) ? -1.0f / dVal : 0.0f) / yMax;
 			}
 		}
 	}

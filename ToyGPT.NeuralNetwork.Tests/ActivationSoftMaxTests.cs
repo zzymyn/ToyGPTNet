@@ -38,5 +38,80 @@ namespace ToyGPT.NeuralNetwork.Tests
 			act.Forward(inputs, outputs);
 			Assert.That(outputs, Is.EqualTo(expected).Within(0.00001f));
 		}
+
+		[Test]
+		public void BackardTest1()
+		{
+			var inputs = new float[,]
+			{
+				{ 0.7f, 0.1f, 0.2f },
+				{ 0.1f, 0.5f, 0.4f },
+				{ 0.02f, 0.9f, 0.08f },
+			};
+			var dValues = new float[,]
+			{
+				{ -0.47619048f, 0, 0},
+				{ 0, -0.66666667f, 0 },
+				{ 0, -0.37037037f, 0 },
+			};
+			var dInputs = ArrayFactory.NewSameSize(dValues);
+			var expected = new float[,]
+			{
+				{-0.1f       ,  0.03333333f,  0.06666667f},
+				{ 0.03333333f, -0.16666667f,  0.13333333f},
+				{ 0.00666667f, -0.03333333f,  0.02666667f },
+			};
+			var act = new ActivationSoftMax();
+			act.Backward(inputs, dValues, dInputs);
+			Assert.That(dInputs, Is.EqualTo(expected).Within(0.00001f));
+		}
+
+		[Test]
+		public void BackardTest2()
+		{
+			var inputs = new float[,]
+			{
+				{ 0.7f, 0.1f, 0.2f },
+				{ 0.1f, 0.5f, 0.4f },
+				{ 0.02f, 0.9f, 0.08f },
+			};
+			var dValues = new float[,]
+			{
+				{ 0.1f, 0.2f, 0.3f},
+				{ -0.1f, -0.2f, -0.3f },
+				{ 0.1f, -0.2f, 0.3f },
+			};
+			var dInputs = ArrayFactory.NewSameSize(dValues);
+			var expected = new float[,]
+			{
+				{-0.035f,    0.005f,    0.03f},
+				{0.013f,    0.015f,   -0.028f},
+				{0.00508f, -0.0414f,   0.03632f},
+			};
+			var act = new ActivationSoftMax();
+			act.Backward(inputs, dValues, dInputs);
+			Assert.That(dInputs, Is.EqualTo(expected).Within(0.00001f));
+		}
+		
+		[Test]
+		public void BackardTest3()
+		{
+			var inputs = new float[,]
+			{
+				{ 0.2f, 0.7f, 0.1f },
+			};
+			var dValues = new float[,]
+			{
+				{ 0.5f, 0.2f, 0.3f},
+			};
+			var dInputs = ArrayFactory.NewSameSize(dValues);
+			var expected = new float[,]
+			{
+				{0.046f, -0.049f,  0.003f},
+			};
+			var act = new ActivationSoftMax();
+			act.Backward(inputs, dValues, dInputs);
+			Assert.That(dInputs, Is.EqualTo(expected).Within(0.00001f));
+		}
 	}
 }

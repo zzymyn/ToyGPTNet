@@ -14,17 +14,17 @@ namespace ToyGPT.NeuralNetwork
 		{
 			Validate.ArraysSameSize(inputs, outputs);
 
-			var rMax = inputs.Height;
-			var iMax = inputs.Width;
-			for (int r = 0; r < rMax; ++r)
+			var yMax = inputs.Height;
+			var xMax = inputs.Width;
+			for (int y = 0; y < yMax; ++y)
 			{
-				var rowIn = inputs.GetRowSpan(r);
-				var rowOut = outputs.GetRowSpan(r);
+				var rowIn = inputs.GetRowSpan(y);
+				var rowOut = outputs.GetRowSpan(y);
 
-				for (int i = 0; i < iMax; ++i)
+				for (int x = 0; x < xMax; ++x)
 				{
-					var v = rowIn[i];
-					rowOut[i] = (v < 0) ? 0 : v;
+					var v = rowIn[x];
+					rowOut[x] = (v < 0) ? 0 : v;
 				}
 			}
 		}
@@ -34,17 +34,17 @@ namespace ToyGPT.NeuralNetwork
 			Validate.ArraysSameSize(inputs, dValues);
 			Validate.ArraysSameSize(inputs, dInputs);
 
-			var rMax = inputs.Height;
-			var iMax = inputs.Width;
-			for (int r = 0; r < rMax; ++r)
+			var yMax = inputs.Height;
+			var xMax = inputs.Width;
+			for (int y = 0; y < yMax; ++y)
 			{
-				var rowIn = inputs.GetRowSpan(r);
-				var rowDVal = dValues.GetRowSpan(r);
-				var rowDIn = dInputs.GetRowSpan(r);
+				var rowIn = inputs.GetRowSpan(y);
+				var rowDVal = dValues.GetRowSpan(y);
+				var rowDIn = dInputs.GetRowSpan(y);
 
-				for (int i = 0; i < iMax; ++i)
+				for (int x = 0; x < xMax; ++x)
 				{
-					rowDIn[i] = (rowIn[i] <= 0) ? 0 : rowDVal[i];
+					rowDIn[x] = (rowIn[x] <= 0) ? 0 : rowDVal[x];
 				}
 			}
 		}

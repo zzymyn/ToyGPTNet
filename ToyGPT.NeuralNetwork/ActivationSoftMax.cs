@@ -56,5 +56,38 @@ namespace ToyGPT.NeuralNetwork
 				}
 			}
 		}
+
+		public void Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs)
+		{
+			Validate.ArraysSameSize(inputs, dValues);
+			Validate.ArraysSameSize(inputs, dInputs);
+
+			var yMax = inputs.Height;
+			var xMax = inputs.Width;
+			var iMax = inputs.Width;
+			for (int y = 0; y < yMax; ++y)
+			{
+				var rowIn = inputs.GetRowSpan(y);
+				var rowDVal = dValues.GetRowSpan(y);
+				var rowDIn = dInputs.GetRowSpan(y);
+
+				for (int x = 0; x < xMax; ++x)
+				{
+					rowDIn[x] = 0.0f;
+
+					for (int i = 0; i < iMax; ++i)
+					{
+						if (x == i)
+						{
+							rowDIn[x] += rowDVal[i] * (rowIn[x] - rowIn[x] * rowIn[x]);
+						}
+						else
+						{
+							rowDIn[x] += rowDVal[i] * -rowIn[x] * rowIn[i];
+						}
+					}
+				}
+			}
+		}
 	}
 }

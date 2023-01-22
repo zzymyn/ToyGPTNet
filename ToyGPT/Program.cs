@@ -29,18 +29,30 @@ namespace ToyGPT
 
 				var (X, y) = CreateData(100, 3, rng);
 
-				var layer0 = LayerDense.CreateNewRandom(2, 3, rng);
-				var layer1 = LayerDense.CreateNewRandom(3, 3, rng);
+				var layer0 = new LayerDense(2, 3);
+				var weights0 = Weights.CreateRandomWeights(2, 3, rng);
+				var biases0 = new float[3];
 
-				var values0 = new float[300, layer0.NeuronCount];
-				var values1 = new float[300, layer1.NeuronCount];
+				var layer1 = new LayerDense(3, 3);
+				var weights1 = Weights.CreateRandomWeights(3, 3, rng);
+				var biases1 = new float[3];
 
-				layer0.Forward(X, values0);
-				relu.Forward(values0);
-				layer1.Forward(values0, values1);
-				softmax.Forward(values1);
+				var values00 = new float[300, layer0.NeuronCount];
+				var values01 = new float[300, layer0.NeuronCount];
+				var values10 = new float[300, layer1.NeuronCount];
+				var values11 = new float[300, layer1.NeuronCount];
 
-				Print2D(console, values1);
+				layer0.Forward(X, weights0, biases0, values00);
+				relu.Forward(values00, values01);
+				layer1.Forward(values01, weights1, biases1, values10);
+				softmax.Forward(values10, values11);
+
+				var losses = new float[300];
+				var cce = new LossCategoricalCrossEntropy();
+				cce.Forward(values11, y, losses);
+				var avgLoss = losses.Average();
+
+				Print2D(console, values11);
 
 				//var weights1 = new[] {
 				//	new float [] { 0.1f, -0.14f, 0.5f },
@@ -98,11 +110,11 @@ namespace ToyGPT
 			console.WriteLine("]");
 		}
 
-		private static (float[,] X, byte[] y) CreateData(int points, int classes, Random rng)
+		private static (float[,] X, int[] y) CreateData(int points, int classes, Random rng)
 		{
 			var len = points * classes;
 			var X = new float[len, 2];
-			var y = new byte[len];
+			var y = new int[len];
 
 			for (int i = 0; i < len; ++i)
 			{
@@ -110,9 +122,9 @@ namespace ToyGPT
 				var classI = i - classNumber * points;
 				var r = (float)classI / points;
 				var t = classNumber * 4 + r * 4 + 0.2f * (float)rng.NextNormal();
-				X[i, 0] = r * (float)Math.Sin(2.5 * t);
-				X[i, 1] = r * (float)Math.Cos(2.5 * t);
-				y[i] = (byte)classNumber;
+				X[i, 0] = r * MathF.Sin(2.5f * t);
+				X[i, 1] = r * MathF.Cos(2.5f * t);
+				y[i] = classNumber;
 			}
 
 			return (X, y);

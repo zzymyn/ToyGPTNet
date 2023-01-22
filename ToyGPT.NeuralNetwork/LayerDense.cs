@@ -25,15 +25,28 @@ namespace ToyGPT.NeuralNetwork
 			Validate.ArraySize(weights, NeuronCount, InputCount);
 			Validate.ArraySize(biases, NeuronCount);
 
-			var bMax = inputs.Height;
-			for (int b = 0; b < bMax; ++b)
-			{
-				var batchIn = inputs.GetRowSpan(b);
-				var batchOut = outputs.GetRowSpan(b);
+			// outputs = mul(inputs, transpose(weights)) + biases
 
-				for (int i = 0; i < NeuronCount; ++i)
+			var yMax = outputs.Height;
+			var xMax = outputs.Width;
+			var iMax = weights.Width;
+			for (int y = 0; y < yMax; ++y)
+			{
+				var rowIn = inputs.GetRowSpan(y);
+				var rowOut = outputs.GetRowSpan(y);
+
+				for (int x = 0; x < xMax; ++x)
 				{
-					batchOut[i] = Neuron.Forward(batchIn, weights.GetRowSpan(i), biases[i]);
+					var rowW = weights.GetRowSpan(x);
+					
+					var v = biases[x];
+					
+					for (int i = 0; i < iMax; ++i)
+					{
+						v += rowIn[i] * rowW[i];
+					}
+					
+					rowOut[x] = v;
 				}
 			}
 		}

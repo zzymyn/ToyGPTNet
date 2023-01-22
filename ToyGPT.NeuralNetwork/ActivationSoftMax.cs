@@ -12,10 +12,7 @@ namespace ToyGPT.NeuralNetwork
 	{
 		public void Forward(ReadOnlySpan2D<float> inputs, Span2D<float> outputs)
 		{
-			if (inputs.Height != outputs.Height)
-				throw new ArgumentException(null, nameof(outputs));
-			if (inputs.Width != outputs.Width)
-				throw new ArgumentException(null, nameof(inputs));
+			Validate.ArraysSameSize(inputs, outputs);
 
 			var rMax = inputs.Height;
 			var iMax = inputs.Width;

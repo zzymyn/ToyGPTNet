@@ -11,7 +11,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 			var inputs = new float[,] {
 				{ 4.8f, 1.21f, 2.385f }
 			};
-			var outputs = new float[1, 3];
+			var outputs = ArrayFactory.NewSameSize(inputs);
 			var expected = new float[,] {
 				{ 0.89528266f, 0.02470831f, 0.08000903f }
 			};
@@ -28,7 +28,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 				{ 8.9f, -1.81f, 0.2f },
 				{ 1.41f, 1.051f, 0.026f },
 			};
-			var outputs = new float[3, 3];
+			var outputs = ArrayFactory.NewSameSize(inputs);
 			var expected = new float[,] {
 				{ 0.895282f, 0.024708f, 0.080009f },
 				{ 9.99811129e-1f, 2.23163963e-5f, 1.66554348e-4f },

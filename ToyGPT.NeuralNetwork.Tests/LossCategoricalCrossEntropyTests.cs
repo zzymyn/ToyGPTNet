@@ -19,7 +19,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 			};
 			var targets = new int[] { 0, 1, 1 };
 			var expected = new float[] { 0.35667494f, 0.69314818f, 0.10536052f };
-			var actual = new float[3];
+			var actual = ArrayFactory.NewFromWidth(inputs);
 			var loss = new LossCategoricalCrossEntropy();
 			loss.Forward(inputs, targets, actual);
 			Assert.That(actual, Is.EqualTo(expected).Within(0.00001f));

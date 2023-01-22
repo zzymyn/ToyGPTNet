@@ -20,9 +20,9 @@ namespace ToyGPT.NeuralNetwork
 
 		public void Forward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> weights, ReadOnlySpan<float> biases, Span2D<float> outputs)
 		{
-			Validate.ArraySize(inputs, InputCount, outputs.Height);
-			Validate.ArraySize(outputs, NeuronCount, inputs.Height);
-			Validate.ArraySize(weights, InputCount, NeuronCount);
+			Validate.ArraySize(inputs, outputs.Height, InputCount);
+			Validate.ArraySize(outputs, inputs.Height, NeuronCount);
+			Validate.ArraySize(weights, NeuronCount, InputCount);
 			Validate.ArraySize(biases, NeuronCount);
 
 			var bMax = inputs.Height;
@@ -41,9 +41,9 @@ namespace ToyGPT.NeuralNetwork
 		public void Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> weights, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs, Span2D<float> dWeights, Span<float> dBiases)
 		{
 			Validate.ArraysSameSize(inputs, dInputs);
-			Validate.ArraySize(inputs, InputCount, dValues.Height);
-			Validate.ArraySize(dValues, NeuronCount, inputs.Height);
-			Validate.ArraySize(weights, InputCount, NeuronCount);
+			Validate.ArraySize(inputs, dValues.Height, InputCount);
+			Validate.ArraySize(dValues, inputs.Height, NeuronCount);
+			Validate.ArraySize(weights, NeuronCount, InputCount);
 			Validate.ArraysSameSize(weights, dWeights);
 			Validate.ArraySize(dBiases, NeuronCount);
 

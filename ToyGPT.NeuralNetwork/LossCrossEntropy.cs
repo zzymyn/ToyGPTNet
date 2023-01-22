@@ -12,12 +12,8 @@ namespace ToyGPT.NeuralNetwork
 	{
 		public void Forward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> expecteds, Span<float> losses)
 		{
-			if (inputs.Height != expecteds.Height)
-				throw new ArgumentException(null, nameof(expecteds));
-			if (inputs.Width != expecteds.Width)
-				throw new ArgumentException(null, nameof(expecteds));
-			if (inputs.Height != losses.Length)
-				throw new ArgumentException(null, nameof(losses));
+			Validate.ArraysSameSize(inputs, expecteds);
+			Validate.ArraySize(losses, inputs.Height);
 
 			var rMax = inputs.Height;
 			var xMax = inputs.Width;
@@ -34,6 +30,27 @@ namespace ToyGPT.NeuralNetwork
 				}
 
 				losses[r] = -loss;
+			}
+		}
+
+		public void Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> expecteds, Span2D<float> dInputs)
+		{
+			Validate.ArraysSameSize(inputs, dInputs);
+			Validate.ArraysSameSize(inputs, expecteds);
+
+			var yMax = dInputs.Height;
+			var xMax = dInputs.Width;
+			for (int y = 0; y < yMax; ++y)
+			{
+				var rowIn = inputs.GetRowSpan(y);
+				var rowDIn = dInputs.GetRowSpan(y);
+				var category = expecteds.GetRowSpan(y);
+
+				for (int x = 0; x < xMax; ++x)
+				{
+					var dVal = rowIn[x];
+					rowDIn[x] =  ((dVal != 0.0f) ? -category[x] / dVal : 0.0f) / yMax;
+				}
 			}
 		}
 	}

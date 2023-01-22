@@ -34,9 +34,9 @@ namespace ToyGPT.NeuralNetwork
 			return new T[input.GetLength(0)];
 		}
 
-		public static float[,] NewLayerOutput(LayerDense layer, float[,] input)
+		public static float[,] NewLayerOutput(float[,] input, float[,] weights)
 		{
-			return new float[input.GetLength(0), layer.NeuronCount];
+			return new float[input.GetLength(0), weights.GetLength(0)];
 		}
 	}
 }

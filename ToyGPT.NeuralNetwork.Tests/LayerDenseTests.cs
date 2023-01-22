@@ -12,7 +12,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 		[Test]
 		public void ForwardTest1()
 		{
-			var layer = new LayerDense(4, 3);
+			var layer = new LayerDense();
 			var weights = new float[,]
 			{
 				{ 0.2f, 0.8f, -0.5f, 1.0f },
@@ -22,7 +22,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 			var biases = new float[] { 2.0f, 3.0f, 0.5f };
 			var inputs = new float[,] { { 1.0f, 2.0f, 3.0f, 2.5f } };
 			var expected = new float[,] { { 4.8f, 1.21f, 2.385f } };
-			var output = ArrayFactory.NewLayerOutput(layer, inputs);
+			var output = ArrayFactory.NewLayerOutput(inputs, weights);
 			layer.Forward(inputs, weights, biases, output);
 			Assert.That(output, Is.EqualTo(expected).Within(0.00001f));
 		}
@@ -48,8 +48,8 @@ namespace ToyGPT.NeuralNetwork.Tests
 				{ 1.41f, 1.051f, 0.026f },
 			};
 
-			var layer = new LayerDense(4, 3);
-			var output = ArrayFactory.NewLayerOutput(layer, inputs);
+			var layer = new LayerDense();
+			var output = ArrayFactory.NewLayerOutput(inputs, weights);
 			layer.Forward(inputs, weights, biases, output);
 			Assert.That(output, Is.EqualTo(expected).Within(0.00001f));
 		}
@@ -57,7 +57,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 		[Test]
 		public void BackwardTest1()
 		{
-			var layer = new LayerDense(4, 3);
+			var layer = new LayerDense();
 			var inputs = new float[,] {
 				{ 1.0f, 2.0f, 3.0f, 2.5f },
 				{ 2, 5, -1, 2 },
@@ -101,7 +101,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 		[Test]
 		public void BackwardTest2()
 		{
-			var layer = new LayerDense(4, 3);
+			var layer = new LayerDense();
 			var inputs = new float[,] {
 				{ 1.0f, 2.0f, 3.0f, 2.5f },
 				{ 2, 5, -1, 2 },

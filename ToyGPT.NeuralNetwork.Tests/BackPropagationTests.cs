@@ -26,8 +26,8 @@ namespace ToyGPT.NeuralNetwork.Tests
 			};
 			var biases = new float[] { 2, 3, 0.5f };
 
-			var layer = new LayerDense(4, 3);
-			var layerOutput = ArrayFactory.NewLayerOutput(layer, inputs);
+			var layer = new LayerDense();
+			var layerOutput = ArrayFactory.NewLayerOutput(inputs, weights);
 			layer.Forward(inputs, weights, biases, layerOutput);
 
 			var relu = new ActivationReLU();

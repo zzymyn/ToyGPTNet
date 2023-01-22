@@ -8,22 +8,14 @@ using CommunityToolkit.HighPerformance;
 namespace ToyGPT.NeuralNetwork
 {
 	public sealed class LayerDense
+		: ILayer
 	{
-		public int InputCount { get; }
-		public int NeuronCount { get; }
-
-		public LayerDense(int numInputs, int numOutputs)
-		{
-			InputCount = numInputs;
-			NeuronCount = numOutputs;
-		}
-
 		public void Forward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> weights, ReadOnlySpan<float> biases, Span2D<float> outputs)
 		{
-			Validate.ArraySize(inputs, outputs.Height, InputCount);
-			Validate.ArraySize(outputs, inputs.Height, NeuronCount);
-			Validate.ArraySize(weights, NeuronCount, InputCount);
-			Validate.ArraySize(biases, NeuronCount);
+			Validate.ArraySize(inputs, outputs.Height, weights.Width);
+			Validate.ArraySize(outputs, inputs.Height, weights.Height);
+			Validate.ArraySize(weights, outputs.Width, inputs.Width);
+			Validate.ArraySize(biases, outputs.Width);
 
 			// outputs = mul(inputs, transpose(weights)) + biases
 
@@ -54,18 +46,18 @@ namespace ToyGPT.NeuralNetwork
 		public void Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> weights, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs, Span2D<float> dWeights, Span<float> dBiases)
 		{
 			Validate.ArraysSameSize(inputs, dInputs);
-			Validate.ArraySize(inputs, dValues.Height, InputCount);
-			Validate.ArraySize(dValues, inputs.Height, NeuronCount);
-			Validate.ArraySize(weights, NeuronCount, InputCount);
+			Validate.ArraySize(inputs, dValues.Height, weights.Width);
+			Validate.ArraySize(dValues, inputs.Height, weights.Height);
+			Validate.ArraySize(weights, dValues.Width, inputs.Width);
 			Validate.ArraysSameSize(weights, dWeights);
-			Validate.ArraySize(dBiases, NeuronCount);
+			Validate.ArraySize(dBiases, weights.Height);
 
 			// calculate dInputs:
 			// dInputs = mul(dValues, weights);
 			{
 				var yMax = dInputs.Height;
 				var xMax = dInputs.Width;
-				var iMax = NeuronCount;
+				var iMax = weights.Height;
 				for (int y = 0; y < yMax; ++y)
 				{
 					var rowDIn = dInputs.GetRowSpan(y);

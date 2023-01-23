@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.Diagnostics;
 using CommunityToolkit.HighPerformance;
 using ToyGPT.Lib;
 using ToyGPT.NeuralNetwork;
@@ -7,7 +8,7 @@ namespace ToyGPT
 {
 	class Program
 	{
-		const int HiddenLayerNeurons = 8;
+		const int HiddenLayerNeurons = 16;
 
 		private static async Task Main(string[] args)
 		{
@@ -23,7 +24,7 @@ namespace ToyGPT
 				var rng = new Random(42);
 
 				var weights0 = Weights.CreateRandomWeights(2, HiddenLayerNeurons, rng);
-				var biases0 = new float[8];
+				var biases0 = new float[HiddenLayerNeurons];
 				var weights1 = Weights.CreateRandomWeights(HiddenLayerNeurons, 3, rng);
 				var biases1 = new float[3];
 				var testOutput = new float[150, 3];
@@ -33,17 +34,23 @@ namespace ToyGPT
 					(weights1, biases1)
 					);
 
+				var sw = Stopwatch.StartNew();
+
 				for (long loopCount = 0; true; ++loopCount)
 				{
 					if (loopCount % 10000 == 0)
 					{
+						var ms = sw.ElapsedMilliseconds;
+						var loopsPerSecond = ms > 0 ? 1000 * loopCount / sw.ElapsedMilliseconds : 0;
+
+						ct.ThrowIfCancellationRequested();
 						var (testX, testY) = CreateSpiral(50, 3, rng);
 						nn.Forward(testX, testY, testOutput, out var avgLoss, out var accuracy);
-						console.WriteLine($"{loopCount}: {avgLoss:0.000000} - {accuracy * 100:#0.000}%");
+						console.WriteLine($"{loopCount}: {avgLoss:0.000000} - {accuracy * 100:#0.000}% {loopsPerSecond} LPS");
 					}
 
-					var (trainingX, trainingY) = CreateSpiral(20, 3, rng);
-					nn.Train(trainingX, trainingY, 0.001f, out var _, out var _);
+					var (trainingX, trainingY) = CreateSpiral(50, 3, rng);
+					nn.Train(trainingX, trainingY, 0.01f, out var _, out var _);
 				}
 			});
 
@@ -110,7 +117,7 @@ namespace ToyGPT
 				var classNumber = i / points;
 				var classI = i - classNumber * points;
 				var r = (float)classI / points;
-				var t = classNumber * 4 + r * 4 + 0.2f * (float)rng.NextNormal();
+				var t = classNumber * 4 + r * 4;// + 0.02f * (float)rng.NextNormal();
 				X[i, 0] = r * MathF.Sin(2.5f * t);
 				X[i, 1] = r * MathF.Cos(2.5f * t);
 				y[i] = classNumber;

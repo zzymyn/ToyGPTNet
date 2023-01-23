@@ -22,13 +22,12 @@ namespace ToyGPT
 
 				var rng = new Random(42);
 
-				var (data, expected) = CreateSpiral(100, 3, rng);
-				
 				var weights0 = Weights.CreateRandomWeights(2, HiddenLayerNeurons, rng);
 				var biases0 = new float[8];
 				var weights1 = Weights.CreateRandomWeights(HiddenLayerNeurons, 3, rng);
 				var biases1 = new float[3];
-
+				var testOutput = new float[150, 3];
+				
 				var nn = new CategoricalNeuralNetworkInstance<LayerDense, ActivationReLU, ActivationLossSoftMaxCategoricalCrossEntropy>(
 					(weights0, biases0),
 					(weights1, biases1)
@@ -36,8 +35,15 @@ namespace ToyGPT
 
 				for (long loopCount = 0; true; ++loopCount)
 				{
-					nn.Train(data, expected, 0.01f, out var b, out var a);
-					console.WriteLine($"{loopCount}: {b:0.000000} - {a * 100:#0.000}%");
+					if (loopCount % 10000 == 0)
+					{
+						var (testX, testY) = CreateSpiral(50, 3, rng);
+						nn.Forward(testX, testY, testOutput, out var avgLoss, out var accuracy);
+						console.WriteLine($"{loopCount}: {avgLoss:0.000000} - {accuracy * 100:#0.000}%");
+					}
+
+					var (trainingX, trainingY) = CreateSpiral(20, 3, rng);
+					nn.Train(trainingX, trainingY, 0.001f, out var _, out var _);
 				}
 			});
 

@@ -30,14 +30,14 @@ namespace ToyGPT.NeuralNetwork
 				for (int x = 0; x < xMax; ++x)
 				{
 					var rowW = weights.GetRowSpan(x);
-					
+
 					var v = biases[x];
-					
+
 					for (int i = 0; i < iMax; ++i)
 					{
 						v += rowIn[i] * rowW[i];
 					}
-					
+
 					rowOut[x] = v;
 				}
 			}
@@ -55,19 +55,24 @@ namespace ToyGPT.NeuralNetwork
 			// calculate dInputs:
 			// dInputs = mul(dValues, weights);
 			{
+				dInputs.Clear();
+
 				var yMax = dInputs.Height;
 				var xMax = dInputs.Width;
 				var iMax = weights.Height;
 				for (int y = 0; y < yMax; ++y)
 				{
 					var rowDIn = dInputs.GetRowSpan(y);
+					var rowDVal = dValues.GetRowSpan(y);
 
-					for (int x = 0; x < xMax; ++x)
+					for (int i = 0; i < iMax; ++i)
 					{
-						rowDIn[x] = 0;
-						for (int i = 0; i < iMax; ++i)
+						var dValue = rowDVal[i];
+						var rowWeights = weights.GetRowSpan(i);
+
+						for (int x = 0; x < xMax; ++x)
 						{
-							rowDIn[x] += dValues[y, i] * weights[i, x];
+							rowDIn[x] += dValue * rowWeights[x];
 						}
 					}
 				}
@@ -77,6 +82,8 @@ namespace ToyGPT.NeuralNetwork
 			// dWeights = transpose(mul(dValues, transpose(inputs)))
 			//          = mul(transpose(dValues), inputs)
 			{
+				dWeights.Clear();
+
 				var yMax = dWeights.Height;
 				var xMax = dWeights.Width;
 				var iMax = inputs.Height;
@@ -84,12 +91,14 @@ namespace ToyGPT.NeuralNetwork
 				{
 					var rowDW = dWeights.GetRowSpan(y);
 
-					for (int x = 0; x < xMax; ++x)
+					for (int i = 0; i < iMax; ++i)
 					{
-						rowDW[x] = 0;
-						for (int i = 0; i < iMax; ++i)
+						var dValue = dValues[i, y];
+						var rowIn = inputs.GetRowSpan(i);
+
+						for (int x = 0; x < xMax; ++x)
 						{
-							rowDW[x] += dValues[i, y] * inputs[i, x];
+							rowDW[x] += dValue * rowIn[x];
 						}
 					}
 				}
@@ -98,14 +107,17 @@ namespace ToyGPT.NeuralNetwork
 			// calculate dBiases:
 			// dBiases = sum-vertical(dValues)
 			{
+				dBiases.Clear();
+
 				var iMax = dBiases.Length;
 				var jMax = inputs.Height;
-				for (int i = 0; i < iMax; ++i)
+				for (int j = 0; j < jMax; ++j)
 				{
-					dBiases[i] = 0;
-					for (int j = 0; j < jMax; ++j)
+					var rowDVal = dValues.GetRowSpan(j);
+
+					for (int i = 0; i < iMax; ++i)
 					{
-						dBiases[i] += dValues[j, i];
+						dBiases[i] += rowDVal[i];
 					}
 				}
 			}

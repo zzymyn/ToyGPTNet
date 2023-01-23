@@ -7,7 +7,7 @@ using CommunityToolkit.HighPerformance;
 
 namespace ToyGPT.NeuralNetwork
 {
-	public class ActivationLossSoftMaxCategoricalCrossEntropy
+	public sealed class ActivationLossSoftMaxCategoricalCrossEntropy
 		: IActivationLossCategorical
 	{
 		private readonly ActivationSoftMax m_SoftMax = new();

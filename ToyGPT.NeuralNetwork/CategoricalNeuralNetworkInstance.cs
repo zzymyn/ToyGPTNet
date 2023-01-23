@@ -7,7 +7,7 @@ using CommunityToolkit.HighPerformance;
 
 namespace ToyGPT.NeuralNetwork
 {
-	public class CategoricalNeuralNetworkInstance<TLayer, THiddenActivation, TFinalActivationLoss>
+	public sealed class CategoricalNeuralNetworkInstance<TLayer, THiddenActivation, TFinalActivationLoss>
 		where TLayer : ILayer, new()
 		where THiddenActivation : IActivation, new()
 		where TFinalActivationLoss : IActivationLossCategorical, new()
@@ -84,18 +84,7 @@ namespace ToyGPT.NeuralNetwork
 
 			CreateInternalArrays(inputs.Height);
 
-			m_Layer.Forward(inputs, m_Weights[0], m_Biases[0], m_Output[0]);
-
-			for (int i = 0; i < m_LayerCount - 1; ++i)
-			{
-				m_HiddenActivation.Forward(m_Output[i], m_Activation[i]);
-				m_Layer.Forward(m_Activation[i], m_Weights[i + 1], m_Biases[i + 1], m_Output[i + 1]);
-			}
-
-			m_FinalActivationLoss.Forward(m_Output[^1], expected, output, m_Loss);
-
-			avgLoss = m_Loss.Average();
-			accuracy = AccuracyCategorical.Compute(output, expected);
+			DoForward(inputs, expected, output, out avgLoss, out accuracy);
 		}
 
 		public void Train(ReadOnlySpan2D<float> inputs, ReadOnlySpan<int> expected, float learningRate, out float avgLoss, out float accuracy)
@@ -105,7 +94,7 @@ namespace ToyGPT.NeuralNetwork
 
 			CreateInternalArrays(inputs.Height);
 
-			Forward(inputs, expected, m_Activation[^1], out avgLoss, out accuracy);
+			DoForward(inputs, expected, m_Activation[^1], out avgLoss, out accuracy);
 
 			m_FinalActivationLoss.Backward(expected, m_Activation[^1], m_DActivation[^1]);
 
@@ -125,6 +114,22 @@ namespace ToyGPT.NeuralNetwork
 				for (int x = 0; x < m_Biases[i].Length; ++x)
 					m_Biases[i][x] -= learningRate * m_DBiases[i][x];
 			}
+		}
+
+		private void DoForward(ReadOnlySpan2D<float> inputs, ReadOnlySpan<int> expected, Span2D<float> output, out float avgLoss, out float accuracy)
+		{
+			m_Layer.Forward(inputs, m_Weights[0], m_Biases[0], m_Output[0]);
+
+			for (int i = 0; i < m_LayerCount - 1; ++i)
+			{
+				m_HiddenActivation.Forward(m_Output[i], m_Activation[i]);
+				m_Layer.Forward(m_Activation[i], m_Weights[i + 1], m_Biases[i + 1], m_Output[i + 1]);
+			}
+
+			m_FinalActivationLoss.Forward(m_Output[^1], expected, output, m_Loss);
+
+			avgLoss = m_Loss.Average();
+			accuracy = AccuracyCategorical.Compute(output, expected);
 		}
 
 		private void CreateInternalArrays(int batchSize)

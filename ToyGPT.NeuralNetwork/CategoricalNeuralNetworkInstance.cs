@@ -7,13 +7,16 @@ using CommunityToolkit.HighPerformance;
 
 namespace ToyGPT.NeuralNetwork
 {
-	public sealed class CategoricalNeuralNetworkInstance<TLayer, THiddenActivation, TFinalActivationLoss>
+	public sealed class CategoricalNeuralNetworkInstance<TLayer, THiddenActivation, TFinalActivation, TFinalActivationLoss>
+		: ICategoricalNeuralNetworkInstance
 		where TLayer : ILayer, new()
 		where THiddenActivation : IActivation, new()
+		where TFinalActivation : IActivation, new()
 		where TFinalActivationLoss : IActivationLossCategorical, new()
 	{
 		private readonly TLayer m_Layer = new();
 		private readonly THiddenActivation m_HiddenActivation = new();
+		private readonly TFinalActivation m_FinalActivation = new();
 		private readonly TFinalActivationLoss m_FinalActivationLoss = new();
 
 		private readonly int m_LayerCount;
@@ -74,6 +77,23 @@ namespace ToyGPT.NeuralNetwork
 				m_DWeights[i] = ArrayFactory.NewSameSize(layers[i].Weight);
 				m_DBiases[i] = ArrayFactory.NewSameSize(layers[i].Biases);
 			}
+		}
+
+		public void Run(ReadOnlySpan2D<float> inputs, Span2D<float> output)
+		{
+			Validate.ArraySize(output, inputs.Height, m_OutputNodeCount);
+
+			CreateInternalArrays(inputs.Height);
+
+			m_Layer.Forward(inputs, m_Weights[0], m_Biases[0], m_Output[0]);
+
+			for (int i = 0; i < m_LayerCount - 1; ++i)
+			{
+				m_HiddenActivation.Forward(m_Output[i], m_Activation[i]);
+				m_Layer.Forward(m_Activation[i], m_Weights[i + 1], m_Biases[i + 1], m_Output[i + 1]);
+			}
+
+			m_FinalActivation.Forward(m_Output[^1], output);
 		}
 
 		public void Forward(ReadOnlySpan2D<float> inputs, ReadOnlySpan<int> expected, Span2D<float> output, out float avgLoss, out float accuracy)

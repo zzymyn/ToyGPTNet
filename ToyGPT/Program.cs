@@ -67,6 +67,7 @@ namespace ToyGPT
 
 		private static float XToDraw(float x) => (x - AxisXMin) / (AxisXMax - AxisXMin) * ImageSize;
 		private static float YToDraw(float y) => (y - AxisYMin) / (AxisYMax - AxisYMin) * ImageSize;
+
 		private static float DrawToX(float px) => (px / ImageSize) * (AxisXMax - AxisXMin) + AxisXMin;
 		private static float DrawToY(float py) => (py / ImageSize) * (AxisYMax - AxisYMin) + AxisYMin;
 

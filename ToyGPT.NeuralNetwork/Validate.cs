@@ -54,5 +54,52 @@ namespace ToyGPT.NeuralNetwork
 				throw new ArgumentException($"Array is the wrong size: {a.Length} != {length}.");
 			}
 		}
+
+		public static void ArraysSameSize<T>(ReadOnlyMemory<T> a, ReadOnlyMemory<T> b)
+		{
+			if (a.Length != b.Length)
+				throw new ArgumentException($"Arrays aren't the same size: {a.Length} != {b.Length}.");
+		}
+
+		public static void ArraysSameSize<T>(ReadOnlyMemory2D<T> a, ReadOnlyMemory2D<T> b)
+		{
+			if (a.Height != b.Height || a.Width != b.Width)
+			{
+				throw new ArgumentException($"Arrays aren't the same size: {a.Height}x{a.Width} != {b.Height}x{b.Width}.");
+			}
+		}
+
+		public static void ArraySize<T>(Memory2D<T> a, int height, int width)
+		{
+			if (a.Width != width || a.Height != height)
+			{
+				throw new ArgumentException($"Array is the wrong size: {a.Height}x{a.Width} != {height}x{width}.");
+			}
+		}
+
+		public static void ArraySize<T>(ReadOnlyMemory2D<T> a, int height, int width)
+		{
+			if (a.Width != width || a.Height != height)
+			{
+				throw new ArgumentException($"Array is the wrong size: {a.Height}x{a.Width} != {height}x{width}.");
+			}
+		}
+
+		public static void ArraySize<T>(Memory<T> a, int length)
+		{
+			if (a.Length != length)
+			{
+				throw new ArgumentException($"Array is the wrong size: {a.Length} != {length}.");
+			}
+		}
+
+		public static void ArraySize<T>(ReadOnlyMemory<T> a, int length)
+		{
+			if (a.Length != length)
+			{
+				throw new ArgumentException($"Array is the wrong size: {a.Length} != {length}.");
+			}
+		}
+
 	}
 }

@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using ToyGPT.NeuralNetwork.Activations;
 
 namespace ToyGPT.NeuralNetwork.Tests
 {
@@ -10,8 +11,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 			var inputs = new float[,] { { 0, 2, -1, 3.3f, -2.7f, 1.1f, 2.2f, -100f } };
 			var outputs = ArrayFactory.NewSameSize(inputs);
 			var expected = new float[,] { { 0, 2, 0, 3.3f, 0, 1.1f, 2.2f, 0 } };
-			var act = new ActivationReLU();
-			act.Forward(inputs, outputs);
+			ActivationReLU.Forward(inputs, outputs);
 			Assert.That(outputs, Is.EqualTo(expected).Within(0.00001f));
 		}
 
@@ -27,8 +27,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 				{ 0, 2, 0, 3.3f, 0, 1.1f, 2.2f, 0 },
 				{ 1, 0, 1, 0, 1, 0, 1, 0 },
 			};
-			var act = new ActivationReLU();
-			act.Forward(inputs, outputs);
+			ActivationReLU.Forward(inputs, outputs);
 			Assert.That(outputs, Is.EqualTo(expected).Within(0.00001f));
 		}
 
@@ -39,8 +38,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 			var dValues = new float[,] { { 1, 2, 3, 4, 5, 6, 7, 8 } };
 			var dInputs = ArrayFactory.NewSameSize(outputs);
 			var expected = new float[,] { { 0, 2, 0, 4, 0, 6, 7, 0 } };
-			var act = new ActivationReLU();
-			act.Backward(outputs, dValues, dInputs);
+			ActivationReLU.Backward(outputs, dValues, dInputs);
 			Assert.That(dInputs, Is.EqualTo(expected).Within(0.00001f));
 		}
 
@@ -66,8 +64,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 				{ 5, 0, 0, 8 },
 				{ 0, 10, 11, 0 },
 			};
-			var act = new ActivationReLU();
-			act.Backward(outputs, dValues, dInputs);
+			ActivationReLU.Backward(outputs, dValues, dInputs);
 			Assert.That(dInputs, Is.EqualTo(expected).Within(0.00001f));
 		}
 	}

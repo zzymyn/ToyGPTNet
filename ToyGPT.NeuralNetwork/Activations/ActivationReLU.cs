@@ -5,46 +5,45 @@ using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
 
-namespace ToyGPT.NeuralNetwork
+namespace ToyGPT.NeuralNetwork.Activations
 {
-	public sealed class ActivationReLU
-		: IActivation
+	public static class ActivationReLU
 	{
-		public void Forward(ReadOnlySpan2D<float> inputs, Span2D<float> outputs)
+		public static void Forward(ReadOnlySpan2D<float> inputs, Span2D<float> outputs)
 		{
 			Validate.ArraysSameSize(inputs, outputs);
 
 			var yMax = inputs.Height;
 			var xMax = inputs.Width;
-			for (int y = 0; y < yMax; ++y)
+			for (var y = 0; y < yMax; ++y)
 			{
 				var rowIn = inputs.GetRowSpan(y);
 				var rowOut = outputs.GetRowSpan(y);
 
-				for (int x = 0; x < xMax; ++x)
+				for (var x = 0; x < xMax; ++x)
 				{
 					var v = rowIn[x];
-					rowOut[x] = (v < 0) ? 0 : v;
+					rowOut[x] = v < 0 ? 0 : v;
 				}
 			}
 		}
 
-		public void Backward(ReadOnlySpan2D<float> outputs, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs)
+		public static void Backward(ReadOnlySpan2D<float> outputs, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs)
 		{
 			Validate.ArraysSameSize(outputs, dValues);
 			Validate.ArraysSameSize(outputs, dInputs);
 
 			var yMax = outputs.Height;
 			var xMax = outputs.Width;
-			for (int y = 0; y < yMax; ++y)
+			for (var y = 0; y < yMax; ++y)
 			{
 				var rowIn = outputs.GetRowSpan(y);
 				var rowDVal = dValues.GetRowSpan(y);
 				var rowDIn = dInputs.GetRowSpan(y);
 
-				for (int x = 0; x < xMax; ++x)
+				for (var x = 0; x < xMax; ++x)
 				{
-					rowDIn[x] = (rowIn[x] <= 0) ? 0 : rowDVal[x];
+					rowDIn[x] = rowIn[x] <= 0 ? 0 : rowDVal[x];
 				}
 			}
 		}

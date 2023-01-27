@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using ToyGPT.NeuralNetwork.Loss;
 
 namespace ToyGPT.NeuralNetwork.Tests
 {
@@ -20,8 +21,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 			var targets = new int[] { 0, 1, 1 };
 			var expected = new float[] { 0.35667494f, 0.69314818f, 0.10536052f };
 			var actual = ArrayFactory.NewFromWidth(inputs);
-			var loss = new LossCategoricalCrossEntropy();
-			loss.Forward(inputs, targets, actual);
+			LossCategoricalCrossEntropy.Forward(inputs, targets, actual);
 			Assert.That(actual, Is.EqualTo(expected).Within(0.00001f));
 		}
 
@@ -40,8 +40,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 				{ 0, -0.37037037f, 0 },
 			};
 			var actual = ArrayFactory.NewSameSize(inputs);
-			var loss = new LossCategoricalCrossEntropy();
-			loss.Backward(inputs, targets, actual);
+			LossCategoricalCrossEntropy.Backward(inputs, targets, actual);
 			Assert.That(actual, Is.EqualTo(expected).Within(0.00001f));
 		}
 
@@ -58,8 +57,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 				{ 0, -1, 0 },
 			};
 			var actual = ArrayFactory.NewSameSize(inputs);
-			var loss = new LossCategoricalCrossEntropy();
-			loss.Backward(inputs, targets, actual);
+			LossCategoricalCrossEntropy.Backward(inputs, targets, actual);
 			Assert.That(actual, Is.EqualTo(expected).Within(0.00001f));
 		}
 	}

@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
+using ToyGPT.NeuralNetwork.Layers;
 
-namespace ToyGPT.NeuralNetwork
+namespace ToyGPT.NeuralNetwork.Layers
 {
-	public sealed class LayerDense
-		: ILayer
+	public static class LayerDense
 	{
-		public void Forward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> weights, ReadOnlySpan<float> biases, Span2D<float> outputs)
+		public static void Forward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> weights, ReadOnlySpan<float> biases, Span2D<float> outputs)
 		{
 			Validate.ArraySize(inputs, outputs.Height, weights.Width);
 			Validate.ArraySize(outputs, inputs.Height, weights.Height);
@@ -43,7 +43,7 @@ namespace ToyGPT.NeuralNetwork
 			}
 		}
 
-		public void Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> weights, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs, Span2D<float> dWeights, Span<float> dBiases)
+		public static void Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> weights, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs, Span2D<float> dWeights, Span<float> dBiases)
 		{
 			Validate.ArraysSameSize(inputs, dInputs);
 			Validate.ArraySize(inputs, dValues.Height, weights.Width);

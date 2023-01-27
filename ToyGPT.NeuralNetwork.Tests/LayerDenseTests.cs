@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using ToyGPT.NeuralNetwork.Layers;
 
 namespace ToyGPT.NeuralNetwork.Tests
 {
@@ -12,7 +13,6 @@ namespace ToyGPT.NeuralNetwork.Tests
 		[Test]
 		public void ForwardTest1()
 		{
-			var layer = new LayerDense();
 			var weights = new float[,]
 			{
 				{ 0.2f, 0.8f, -0.5f, 1.0f },
@@ -23,7 +23,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 			var inputs = new float[,] { { 1.0f, 2.0f, 3.0f, 2.5f } };
 			var expected = new float[,] { { 4.8f, 1.21f, 2.385f } };
 			var output = ArrayFactory.NewLayerOutput(inputs, weights);
-			layer.Forward(inputs, weights, biases, output);
+			LayerDense.Forward(inputs, weights, biases, output);
 			Assert.That(output, Is.EqualTo(expected).Within(0.00001f));
 		}
 
@@ -48,16 +48,14 @@ namespace ToyGPT.NeuralNetwork.Tests
 				{ 1.41f, 1.051f, 0.026f },
 			};
 
-			var layer = new LayerDense();
 			var output = ArrayFactory.NewLayerOutput(inputs, weights);
-			layer.Forward(inputs, weights, biases, output);
+			LayerDense.Forward(inputs, weights, biases, output);
 			Assert.That(output, Is.EqualTo(expected).Within(0.00001f));
 		}
 
 		[Test]
 		public void BackwardTest1()
 		{
-			var layer = new LayerDense();
 			var inputs = new float[,] {
 				{ 1.0f, 2.0f, 3.0f, 2.5f },
 				{ 2, 5, -1, 2 },
@@ -92,7 +90,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 				{ 0.5f, 20.1f, 10.9f, 4.1f, },
 			};
 			var expectedDBiases = new float[] { 6, 6, 6 };
-			layer.Backward(inputs, weights, dValues, dInputs, dWeights, dBiases);
+			LayerDense.Backward(inputs, weights, dValues, dInputs, dWeights, dBiases);
 			Assert.That(dInputs, Is.EqualTo(expectedDInputs).Within(0.00001f));
 			Assert.That(dWeights, Is.EqualTo(expectedDWeights).Within(0.00001f));
 			Assert.That(dBiases, Is.EqualTo(expectedDBiases).Within(0.00001f));
@@ -101,7 +99,6 @@ namespace ToyGPT.NeuralNetwork.Tests
 		[Test]
 		public void BackwardTest2()
 		{
-			var layer = new LayerDense();
 			var inputs = new float[,] {
 				{ 1.0f, 2.0f, 3.0f, 2.5f },
 				{ 2, 5, -1, 2 },
@@ -134,7 +131,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 			};
 			var expectedDBiases = new float[] { 3, 1, 1.5f };
 
-			layer.Backward(inputs, weights, dValues, dInputs, dWeights, dBiases);
+			LayerDense.Backward(inputs, weights, dValues, dInputs, dWeights, dBiases);
 			Assert.That(dInputs, Is.EqualTo(expectedDInputs).Within(0.00001f));
 			Assert.That(dWeights, Is.EqualTo(expectedDWeights).Within(0.00001f));
 			Assert.That(dBiases, Is.EqualTo(expectedDBiases).Within(0.00001f));

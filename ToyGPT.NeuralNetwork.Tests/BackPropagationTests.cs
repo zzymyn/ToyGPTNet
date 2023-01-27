@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
 using NUnit.Framework;
+using ToyGPT.NeuralNetwork.Activations;
+using ToyGPT.NeuralNetwork.Layers;
 
 namespace ToyGPT.NeuralNetwork.Tests
 {
@@ -26,21 +28,19 @@ namespace ToyGPT.NeuralNetwork.Tests
 			};
 			var biases = new float[] { 2, 3, 0.5f };
 
-			var layer = new LayerDense();
 			var layerOutput = ArrayFactory.NewLayerOutput(inputs, weights);
-			layer.Forward(inputs, weights, biases, layerOutput);
+			LayerDense.Forward(inputs, weights, biases, layerOutput);
 
-			var relu = new ActivationReLU();
 			var reluOutput = ArrayFactory.NewSameSize(layerOutput);
-			relu.Forward(layerOutput, reluOutput);
+			ActivationReLU.Forward(layerOutput, reluOutput);
 
 			var dRelu = ArrayFactory.NewSameSize(reluOutput);
-			relu.Backward(layerOutput, reluOutput, dRelu);
+			ActivationReLU.Backward(layerOutput, reluOutput, dRelu);
 
 			var dInputs = ArrayFactory.NewSameSize(inputs);
 			var dWeights = ArrayFactory.NewSameSize(weights);
 			var dBiases = ArrayFactory.NewSameSize(biases);
-			layer.Backward(inputs, weights, dRelu, dInputs, dWeights, dBiases);
+			LayerDense.Backward(inputs, weights, dRelu, dInputs, dWeights, dBiases);
 
 			{
 				var yMax = weights.GetLength(0);

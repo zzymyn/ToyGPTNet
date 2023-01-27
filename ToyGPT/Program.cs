@@ -29,31 +29,37 @@ namespace ToyGPT
 				var biases0 = new float[HiddenLayerNeurons];
 				var weights1 = Weights.CreateRandomWeights(HiddenLayerNeurons, 3, rng);
 				var biases1 = new float[3];
-				var testOutput = new float[150, 3];
+				var learningRate = 1.0f;
+				var learningDecay = 0.001f;
 
-				var nn = new CategoricalNeuralNetworkInstance<LayerDense, ActivationReLU, ActivationSoftMax, ActivationLossSoftMaxCategoricalCrossEntropy>(
+				var nn = new CategoricalNeuralNetworkInstance(300,
 					(weights0, biases0),
 					(weights1, biases1)
 					);
 
 				var sw = Stopwatch.StartNew();
+				var imgTasks = new List<Task>();
 
 				var (testX, testY) = CreateSpiral(100, 3, rng);
 
-				for (long loopCount = 0; loopCount <= 25000; ++loopCount)
+				for (long loopCount = 0; loopCount <= 10000; ++loopCount)
 				{
 					ct.ThrowIfCancellationRequested();
 
-					nn.Train(testX, testY, 0.5f, out var avgLoss, out var accuracy);
+					var lr = learningRate / (1.0f + learningDecay * loopCount);
+					nn.Train(testX, testY, lr, out var avgLoss, out var accuracy);
 
 					if (loopCount % 100 == 0)
 					{
-						WriteImage(testX, testY, nn, loopCount);
+						var useNN = nn.CopyWithBatchSize(ImageSize * ImageSize);
+						imgTasks.Add(WriteImage(testX, testY, useNN, loopCount));
 						var ms = sw.ElapsedMilliseconds;
 						var loopsPerSecond = ms > 0 ? 1000 * loopCount / sw.ElapsedMilliseconds : 0;
-						console.WriteLine($"{loopCount}: {avgLoss:0.000000} - {accuracy * 100:#0.000}% {loopsPerSecond} LPS");
+						console.WriteLine($"{loopCount}: {avgLoss:0.000000} - {accuracy * 100:#0.000}% - lr: {lr:0.00} - {loopsPerSecond} LPS");
 					}
 				}
+
+				await Task.WhenAll(imgTasks);
 			});
 
 			await rootCommand.InvokeAsync(args);
@@ -71,62 +77,63 @@ namespace ToyGPT
 		private static float DrawToX(float px) => (px / ImageSize) * (AxisXMax - AxisXMin) + AxisXMin;
 		private static float DrawToY(float py) => (py / ImageSize) * (AxisYMax - AxisYMin) + AxisYMin;
 
-		private static void WriteImage(float[,] testX, int[] testY, ICategoricalNeuralNetworkInstance nn, long gen)
+		private static Task WriteImage(float[,] testX, int[] testY, ICategoricalNeuralNetworkInstance nn, long gen)
 		{
-			var bmp = new SkiaBitmapExportContext(ImageSize, ImageSize, 1.0f);
-			var canvas = bmp.Canvas;
-
-			canvas.FillColor = Colors.White;
-			canvas.FillRectangle(0, 0, ImageSize, ImageSize);
-
-			var nnIn = new float[ImageSize * ImageSize, 2];
-			for (int y = 0; y < ImageSize; ++y)
+			return Task.Run(() =>
 			{
-				for (int x = 0; x < ImageSize; ++x)
+				var bmp = new SkiaBitmapExportContext(ImageSize, ImageSize, 1.0f);
+				var canvas = bmp.Canvas;
+
+				canvas.FillColor = Colors.White;
+				canvas.FillRectangle(0, 0, ImageSize, ImageSize);
+
+				var nnIn = new float[ImageSize * ImageSize, 2];
+				for (int y = 0; y < ImageSize; ++y)
 				{
-					nnIn[y * ImageSize + x, 0] = DrawToX(x);
-					nnIn[y * ImageSize + x, 1] = DrawToX(y);
+					for (int x = 0; x < ImageSize; ++x)
+					{
+						nnIn[y * ImageSize + x, 0] = DrawToX(x);
+						nnIn[y * ImageSize + x, 1] = DrawToX(y);
+					}
 				}
-			}
 
-			var nnOut = new float[ImageSize * ImageSize, 3];
+				var nnOut = nn.Run(nnIn).Span;
 
-			nn.Run(nnIn, nnOut);
-
-			for (int y = 0; y < ImageSize; ++y)
-			{
-				for (int x = 0; x < ImageSize; ++x)
+				for (int y = 0; y < ImageSize; ++y)
 				{
-					canvas.FillColor = new Color(nnOut[y * ImageSize + x, 0], nnOut[y * ImageSize + x, 1], nnOut[y * ImageSize + x, 2]);
-					canvas.FillRectangle(x, y, 1, 1);
+					for (int x = 0; x < ImageSize; ++x)
+					{
+						canvas.FillColor = new Color(nnOut[y * ImageSize + x, 0], nnOut[y * ImageSize + x, 1], nnOut[y * ImageSize + x, 2]);
+						canvas.FillRectangle(x, y, 1, 1);
+					}
 				}
-			}
 
-			canvas.StrokeColor = Colors.Black;
-			canvas.DrawLine(XToDraw(AxisXMin), YToDraw(0.0f), XToDraw(AxisXMax), YToDraw(0.0f));
-			canvas.DrawLine(XToDraw(0.0f), YToDraw(AxisYMin), XToDraw(0.0f), YToDraw(AxisYMax));
-
-			for (int i = 0; i < testX.GetLength(0); ++i)
-			{
-				var x = testX[i, 0];
-				var y = testX[i, 1];
-				var c = testY[i];
-
-				var drawX = XToDraw(x);
-				var drawY = YToDraw(y);
-
-				canvas.FillColor = c switch
-				{
-					0 => Colors.Red,
-					1 => Colors.Green,
-					_ => Colors.Blue,
-				};
 				canvas.StrokeColor = Colors.Black;
-				canvas.FillCircle(drawX, drawY, 3.0f);
-				canvas.DrawCircle(drawX, drawY, 3.0f);
-			}
+				canvas.DrawLine(XToDraw(AxisXMin), YToDraw(0.0f), XToDraw(AxisXMax), YToDraw(0.0f));
+				canvas.DrawLine(XToDraw(0.0f), YToDraw(AxisYMin), XToDraw(0.0f), YToDraw(AxisYMax));
 
-			bmp.WriteToFile($"nn{gen:00000}.png");
+				for (int i = 0; i < testX.GetLength(0); ++i)
+				{
+					var x = testX[i, 0];
+					var y = testX[i, 1];
+					var c = testY[i];
+
+					var drawX = XToDraw(x);
+					var drawY = YToDraw(y);
+
+					canvas.FillColor = c switch
+					{
+						0 => Colors.Red,
+						1 => Colors.Green,
+						_ => Colors.Blue,
+					};
+					canvas.StrokeColor = Colors.Black;
+					canvas.FillCircle(drawX, drawY, 3.0f);
+					canvas.DrawCircle(drawX, drawY, 3.0f);
+				}
+
+				bmp.WriteToFile($"nn{gen:00000}.png");
+			});
 		}
 
 		private static void Print(IConsole console, float[] a)
@@ -189,7 +196,7 @@ namespace ToyGPT
 				var classNumber = i / points;
 				var classI = i - classNumber * points;
 				var r = (float)classI / points;
-				var t = classNumber * 4 + r * 4;// + 0.2f * (float)rng.NextNormal();
+				var t = classNumber * 4 + r * 4 + 0.2f * (float)rng.NextNormal();
 				X[i, 0] = r * MathF.Sin(2.5f * t);
 				X[i, 1] = r * MathF.Cos(2.5f * t);
 				y[i] = classNumber;

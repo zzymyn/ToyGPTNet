@@ -4,9 +4,69 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ToyGPTNet.NeuralNetwork.UI"
+        xmlns:viewmodel="clr-namespace:ToyGPTNet.NeuralNetwork.UI.ViewModel" xmlns:wpf="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="MainWindow" Height="800" Width="1000">
+    <Window.DataContext>
+        <viewmodel:RootViewModel/>
+    </Window.DataContext>
 
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="350"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.IsSharedSizeScope="True">
+            <GroupBox Header="Data">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="C1"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock >Randomness:</TextBlock>
+                        <TextBox Grid.Column="1" Text="{Binding DataRandomness, UpdateSourceTrigger=PropertyChanged, StringFormat=0.00}" IsEnabled="{Binding IsTrainingEnabled}"></TextBox>
+                        <Slider Grid.Column="2" Minimum="0" Maximum="1" Value="{Binding DataRandomness}" IsEnabled="{Binding IsTrainingEnabled}" />
+                    </Grid>
+                </StackPanel>
+            </GroupBox>
+            <GroupBox Header="Neural Network">
+                <StackPanel>
+                    <Button Command="{Binding ResetCommand}" IsEnabled="{Binding IsTrainingEnabled}">Reset</Button>
+                </StackPanel>
+            </GroupBox>
+            <GroupBox Header="Train">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="C1"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock >Epochs:</TextBlock>
+                        <TextBox Grid.Column="1" IsEnabled="{Binding IsTrainingEnabled}" Text="{Binding TrainingEpochs}"></TextBox>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="C1"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock >Learning Rate:</TextBlock>
+                        <TextBox Grid.Column="1" IsEnabled="{Binding IsTrainingEnabled}" Text="{Binding LearningRate, StringFormat=0.###}"></TextBox>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="C1"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock >Learning Decay:</TextBlock>
+                        <TextBox Grid.Column="1" IsEnabled="{Binding IsTrainingEnabled}" Text="{Binding LearningRateDecay, StringFormat=0.00##}"></TextBox>
+                    </Grid>
+                    <Button Command="{Binding TrainCommand}" IsEnabled="{Binding IsTrainingEnabled}">Train</Button>
+                    <ProgressBar Height="20" Value="{Binding TrainingProgress, Mode=OneWay}"/>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+        <Image Grid.Column="1" x:Name="m_Image" Source="{Binding Image}" Stretch="Uniform"/>
     </Grid>
 </Window>

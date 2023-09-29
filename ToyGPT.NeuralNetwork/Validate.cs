@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
@@ -9,6 +11,21 @@ namespace ToyGPT.NeuralNetwork
 {
 	internal static class Validate
 	{
+		public static void True(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
+		{
+			if (!condition)
+			{
+				if (message is null)
+				{
+					throw new ArgumentException("Condition is false.");
+				}
+				else
+				{
+					throw new ArgumentException($"Expected {message}, but wasn't.");
+				}
+			}
+		}
+
 		public static void ArraysSameSize<T>(ReadOnlySpan<T> a, ReadOnlySpan<T> b)
 		{
 			if (a.Length != b.Length)

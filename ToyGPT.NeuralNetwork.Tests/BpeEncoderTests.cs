@@ -13,12 +13,23 @@ namespace ToyGPT.NeuralNetwork.Tests
 	public class BpeEncoderTests
 	{
 		[Test]
-		public void TestBpe()
+		[TestCase("", new int[0])]
+		[TestCase("Not all heroes wear capes.", new[] { 3673, 477, 10281, 5806, 1451, 274, 13 })]
+		[TestCase("aslk;duhygfapoiuwsenv;auhedsf", new[] { 292, 75, 74, 26, 646, 12114, 70, 69, 41817, 16115, 86, 6248, 85, 26, 559, 704, 28202 })]
+		[TestCase("こんにちは", new[] { 46036, 22174, 28618, 2515, 94, 31676 })]
+		public void TestEncoder(string input, int[] output)
 		{
-			var encoderData = JsonNode.Parse(File.ReadAllText("TestData/encoder.json")) as JsonObject;
-			var encoding = encoderData.ToDictionary(a => a.Key, a => (int)a.Value);
+			var enc = LoadEncoder();
+			var encoded = enc.Encode(input);
+			Assert.AreEqual(output, encoded);
+		}
 
-			var vocabData = File.ReadAllLines("TestData/vocab.bpe");
+		private static BpeEncoder LoadEncoder()
+		{
+			var encoderData = JsonNode.Parse(File.ReadAllText("../../../../Data/124M.encoder.json")) as JsonObject;
+			var encoding = encoderData!.ToDictionary(a => a.Key, a => (int)a.Value!);
+
+			var vocabData = File.ReadAllLines("../../../../Data/124M.vocab.bpe");
 			var bpes = vocabData
 				.Where(a => !a.StartsWith("#"))
 				.Select(a => a.Split(" "))
@@ -26,8 +37,7 @@ namespace ToyGPT.NeuralNetwork.Tests
 				.ToList();
 
 			var enc = new BpeEncoder(encoding, bpes);
-
-			var tok = enc.Encode("Not all heroes wear capes.");
+			return enc;
 		}
 	}
 }

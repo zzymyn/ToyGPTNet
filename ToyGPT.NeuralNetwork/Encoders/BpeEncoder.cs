@@ -143,11 +143,13 @@ namespace ToyGPT.NeuralNetwork.Encoders
 			{
 				b2u[(byte)c] = (char)c;
 			}
+			var n = 0;
 			for (int c = 0; c < 256; c++)
 			{
 				if (!b2u.ContainsKey((byte)c))
 				{
-					b2u[(byte)c] = (char)(256 + c);
+					b2u[(byte)c] = (char)(256 + n);
+					++n;
 				}
 			}
 

@@ -14,27 +14,33 @@ namespace ToyGPT.NeuralNetwork.Encoders
 	/// <remarks>
 	/// At a high level, encoding works following these steps:
 	/// <list type="number">
-	/// <item>Split the text into "words" using a Regex.</item>
+	/// <item>Split the text into "words" using a Regex, see <see cref="MakePat"/>.</item>
+	/// <item>For each word:
+	/// <list type="number">
 	/// <item>Convert each word to UTF8.</item>
-	/// <item>Encode the UTF8 bytes to chars (see <see cref="BytesToUnicode"/>) for some reason (GPT2 does this but I'm still not sure exactly why).</item>
-	/// <item>Map each encoded char to a token using the provided encoding dictionary.</item>
+	/// <item>Encode the UTF8 bytes to an encoding I'm calling "minicode" (see <see cref="BytesToMinicode"/>) for some reason (GPT2 does this but I'm still not sure exactly why).</item>
+	/// <item>Map each minicode char to a token using the provided encoding dictionary.</item>
 	/// <item>Merge token pairs using the provided bytePairs list, see <see cref="MergeTokenPairs(List{int})"/>.</item>
+	/// </list></item>
 	/// </list>
 	/// </remarks>
 	public partial class BpeEncoder
 		: IEncoder
 	{
+		private record struct RankedToken(int Token, int Rank);
+
+		private readonly Regex m_Pat = MakePat();
+
 		private readonly Dictionary<byte, int> m_ByteToToken = new();
 		private readonly Dictionary<int, byte[]> m_TokenToBytes = new();
 
-		private readonly Dictionary<(int, int), int> m_Bps = new();
-		private readonly Dictionary<(int, int), int> m_BpRanks = new();
-		private readonly Regex m_Pat = MakePat();
+		private readonly Dictionary<(int, int), RankedToken> m_TokenPairs = new();
+
 		private readonly Dictionary<string, int[]> m_Cache = new();
 
 		public BpeEncoder(Dictionary<string, int> encoding, List<(string, string)> bytePairs)
 		{
-			var byteEncoder = BytesToUnicode();
+			var byteEncoder = BytesToMinicode();
 			var byteDecoder = byteEncoder.ToDictionary(x => x.Value, x => x.Key);
 
 			foreach (var (b, c) in byteEncoder)
@@ -55,8 +61,7 @@ namespace ToyGPT.NeuralNetwork.Encoders
 				var b0 = encoding[str0];
 				var b1 = encoding[str1];
 
-				m_Bps[(b0, b1)] = encoding[$"{str0}{str1}"];
-				m_BpRanks[(b0, b1)] = i;
+				m_TokenPairs[(b0, b1)] = new RankedToken(encoding[$"{str0}{str1}"], i);
 			}
 		}
 
@@ -121,37 +126,30 @@ namespace ToyGPT.NeuralNetwork.Encoders
 				var bestPair = GetBestPair(tokens);
 				if (!bestPair.HasValue)
 					break;
-				var (p0, p1) = bestPair.Value;
 
-				for (int i = 1; i < tokens.Count; ++i)
-				{
-					if (tokens[i - 1] == p0 && tokens[i] == p1)
-					{
-						tokens[i - 1] = m_Bps[(p0, p1)];
-						tokens.RemoveAt(i);
-						--i;
-					}
-				}
+				var (i, token) = bestPair.Value;
+				tokens[i - 1] = token;
+				tokens.RemoveAt(i);
 			}
 		}
 
-		private (int, int)? GetBestPair(List<int> tokens)
+		private (int Index, int Token)? GetBestPair(List<int> tokens)
 		{
 			if (tokens.Count <= 1)
 				return null;
 
 			int bestRank = int.MaxValue;
-			(int, int)? bestPair = default;
+			(int Index, int Token)? bestPair = default;
 
 			var p0 = tokens[0];
 
 			for (int i = 1; i < tokens.Count; ++i)
 			{
 				var p1 = tokens[i];
-				if (m_BpRanks.TryGetValue((p0, p1), out var rank) && rank < bestRank)
+				if (m_TokenPairs.TryGetValue((p0, p1), out var rt) && rt.Rank < bestRank)
 				{
-					bestRank = rank;
-					bestPair = (p0, p1);
+					bestRank = rt.Rank;
+					bestPair = (i, rt.Token);
 				}
 				p0 = p1;
 			}
@@ -159,7 +157,7 @@ namespace ToyGPT.NeuralNetwork.Encoders
 			return bestPair;
 		}
 
-		private static Dictionary<byte, char> BytesToUnicode()
+		private static Dictionary<byte, char> BytesToMinicode()
 		{
 			var b2u = new Dictionary<byte, char>();
 

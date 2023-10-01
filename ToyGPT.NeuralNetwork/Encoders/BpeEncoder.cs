@@ -8,7 +8,19 @@ using System.Threading.Tasks;
 
 namespace ToyGPT.NeuralNetwork.Encoders
 {
-	// Byte-Pair Encoding like GPT2
+	/// <summary>
+	/// Byte Pair Encoding from GPT2
+	/// </summary>
+	/// <remarks>
+	/// At a high level, encoding works following these steps:
+	/// <list type="number">
+	/// <item>Split the text into "words" using a Regex.</item>
+	/// <item>Convert each word to UTF8.</item>
+	/// <item>Encode the UTF8 bytes to chars (see <see cref="BytesToUnicode"/>) for some reason (GPT2 does this but I'm still not sure exactly why).</item>
+	/// <item>Map each encoded char to a token using the provided encoding dictionary.</item>
+	/// <item>Merge token pairs using the provided bytePairs list, see <see cref="MergeTokenPairs(List{int})"/>.</item>
+	/// </list>
+	/// </remarks>
 	public partial class BpeEncoder
 		: IEncoder
 	{

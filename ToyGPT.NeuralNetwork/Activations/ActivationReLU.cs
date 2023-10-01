@@ -19,12 +19,7 @@ namespace ToyGPT.NeuralNetwork.Activations
 			{
 				var rowIn = inputs.GetRowSpan(y);
 				var rowOut = outputs.GetRowSpan(y);
-
-				for (var x = 0; x < xMax; ++x)
-				{
-					var v = rowIn[x];
-					rowOut[x] = v < 0 ? 0 : v;
-				}
+				MMath.ReLU(rowIn, rowOut);
 			}
 		}
 

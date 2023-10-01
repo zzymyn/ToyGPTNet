@@ -14,45 +14,12 @@ namespace ToyGPT.NeuralNetwork.Activations
 			Validate.ArraysSameSize(inputs, outputs);
 
 			var rMax = inputs.Height;
-			var iMax = inputs.Width;
 			for (var r = 0; r < rMax; ++r)
 			{
 				var rowIn = inputs.GetRowSpan(r);
 				var rowOut = outputs.GetRowSpan(r);
 
-				// because overly large values in the input can cause overflow,
-				// we need to subtract the max value from all inputs before
-				// computing the exponential:
-
-				var max = float.MinValue;
-				foreach (var a in rowIn)
-				{
-					if (a > max)
-						max = a;
-				}
-
-				// keeping track of the sum, set each output to e^(x - max):
-
-				var sum = 0.0f;
-
-				for (var i = 0; i < iMax; ++i)
-				{
-					var a = MathF.Exp(rowIn[i] - max);
-					sum += a;
-					rowOut[i] = a;
-				}
-
-				// after that we need to normalize the output using the sum:
-
-				if (sum != 0.0f)
-				{
-					var invSum = 1.0f / sum;
-
-					foreach (ref var a in rowOut)
-					{
-						a *= invSum;
-					}
-				}
+				MMath.Softmax(rowIn, rowOut);
 			}
 		}
 

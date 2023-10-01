@@ -8,10 +8,8 @@ using CommunityToolkit.HighPerformance;
 namespace ToyGPT.NeuralNetwork.Activations
 {
 	public interface IActivationInstance
+		: IForwardActivationInstance
+		, IBackwardActivationInstance
 	{
-		ReadOnlyMemory2D<float> Outputs { get; }
-
-		ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs);
-		ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues);
 	}
 }

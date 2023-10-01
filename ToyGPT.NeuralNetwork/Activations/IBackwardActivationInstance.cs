@@ -1,9 +1,8 @@
-﻿using CommunityToolkit.HighPerformance;
+using CommunityToolkit.HighPerformance;
 
-namespace ToyGPT.NeuralNetwork.Activations
+namespace ToyGPT.NeuralNetwork.Activations;
+
+public interface IBackwardActivationInstance
 {
-	public interface IBackwardActivationInstance
-	{
-		ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues);
-	}
+	ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues);
 }

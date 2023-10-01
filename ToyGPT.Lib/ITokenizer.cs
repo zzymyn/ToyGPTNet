@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ToyGPT.Lib
+namespace ToyGPT.Lib;
+
+internal interface ITokenizer
 {
-	internal interface ITokenizer
-	{
-		IAsyncEnumerable<int> Encode(IAsyncEnumerable<char> input);
-		IAsyncEnumerable<char> Decode(IAsyncEnumerable<int> input);
-	}
+	IAsyncEnumerable<int> Encode(IAsyncEnumerable<char> input);
+	IAsyncEnumerable<char> Decode(IAsyncEnumerable<int> input);
 }

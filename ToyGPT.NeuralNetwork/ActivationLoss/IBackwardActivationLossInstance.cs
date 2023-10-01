@@ -1,9 +1,8 @@
 ﻿using CommunityToolkit.HighPerformance;
 
-namespace ToyGPT.NeuralNetwork.ActivationLoss
+namespace ToyGPT.NeuralNetwork.ActivationLoss;
+
+public interface IBackwardActivationLossInstance
 {
-	public interface IBackwardActivationLossInstance
-	{
-		ReadOnlyMemory2D<float> Backward(ReadOnlySpan<int> expected);
-	}
+	ReadOnlyMemory2D<float> Backward(ReadOnlySpan<int> expected);
 }

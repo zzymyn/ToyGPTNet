@@ -19,16 +19,15 @@ using SkiaSharp.Views.WPF;
 using ToyGPTNet.NeuralNetwork.UI.ViewModel;
 using Colors = Microsoft.Maui.Graphics.Colors;
 
-namespace ToyGPTNet.NeuralNetwork.UI
+namespace ToyGPTNet.NeuralNetwork.UI;
+
+/// <summary>
+/// Interaction logic for MainWindow.xaml
+/// </summary>
+public partial class MainWindow : Window
 {
-	/// <summary>
-	/// Interaction logic for MainWindow.xaml
-	/// </summary>
-	public partial class MainWindow : Window
+	public MainWindow()
 	{
-		public MainWindow()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

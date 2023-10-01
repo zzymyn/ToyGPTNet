@@ -4,54 +4,53 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ToyGPT.Lib
+namespace ToyGPT.Lib;
+
+internal class CharacterLevelTokenizer
+	: ITokenizer
 {
-	internal class CharacterLevelTokenizer
-		: ITokenizer
+	private readonly CancellationToken m_Ct;
+	private readonly Dictionary<int, char> m_Token2Char = new();
+	private readonly Dictionary<char, int> m_Char2Token = new();
+
+	public CharacterLevelTokenizer(CancellationToken ct)
 	{
-		private readonly CancellationToken m_Ct;
-		private readonly Dictionary<int, char> m_Token2Char = new();
-		private readonly Dictionary<char, int> m_Char2Token = new();
+		m_Ct = ct;
+	}
 
-		public CharacterLevelTokenizer(CancellationToken ct)
+	public async Task Load(IAsyncEnumerable<char> input)
+	{
+		var set = new HashSet<char>();
+		
+		await foreach (var c in input.WithCancellation(m_Ct))
 		{
-			m_Ct = ct;
+			set.Add(c);
 		}
 
-		public async Task Load(IAsyncEnumerable<char> input)
+		var inOrder = set.ToList();
+		inOrder.Sort();
+
+		for (int i = 0; i < inOrder.Count; ++i)
 		{
-			var set = new HashSet<char>();
-			
-			await foreach (var c in input.WithCancellation(m_Ct))
-			{
-				set.Add(c);
-			}
-
-			var inOrder = set.ToList();
-			inOrder.Sort();
-
-			for (int i = 0; i < inOrder.Count; ++i)
-			{
-				var c = inOrder[i];
-				m_Char2Token[c] = i;
-				m_Token2Char[i] = c;
-			}
+			var c = inOrder[i];
+			m_Char2Token[c] = i;
+			m_Token2Char[i] = c;
 		}
+	}
 
-		public async IAsyncEnumerable<int> Encode(IAsyncEnumerable<char> input)
+	public async IAsyncEnumerable<int> Encode(IAsyncEnumerable<char> input)
+	{
+		await foreach (var c in input.WithCancellation(m_Ct))
 		{
-			await foreach (var c in input.WithCancellation(m_Ct))
-			{
-				yield return m_Char2Token[c];
-			}
+			yield return m_Char2Token[c];
 		}
+	}
 
-		public async IAsyncEnumerable<char> Decode(IAsyncEnumerable<int> input)
+	public async IAsyncEnumerable<char> Decode(IAsyncEnumerable<int> input)
+	{
+		await foreach (var c in input.WithCancellation(m_Ct))
 		{
-			await foreach (var c in input.WithCancellation(m_Ct))
-			{
-				yield return m_Token2Char[c];
-			}
+			yield return m_Token2Char[c];
 		}
 	}
 }

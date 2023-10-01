@@ -1,10 +1,9 @@
 using CommunityToolkit.HighPerformance;
 
-namespace ToyGPT.NeuralNetwork.Layers
+namespace ToyGPT.NeuralNetwork.Layers;
+
+public interface ILayerInstance
+	: IForwardLayerInstance
+	, IBackwardLayerInstance
 {
-	public interface ILayerInstance
-		: IForwardLayerInstance
-		, IBackwardLayerInstance
-	{
-	}
 }

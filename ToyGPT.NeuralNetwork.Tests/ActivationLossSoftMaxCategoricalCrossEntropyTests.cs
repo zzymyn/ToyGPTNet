@@ -9,49 +9,48 @@ using ToyGPT.NeuralNetwork.ActivationLoss;
 using ToyGPT.NeuralNetwork.Activations;
 using ToyGPT.NeuralNetwork.Loss;
 
-namespace ToyGPT.NeuralNetwork.Tests
+namespace ToyGPT.NeuralNetwork.Tests;
+
+internal class ActivationLossSoftMaxCategoricalCrossEntropyTests
 {
-	internal class ActivationLossSoftMaxCategoricalCrossEntropyTests
+	[Test]
+	public void BackwardTest1()
 	{
-		[Test]
-		public void BackwardTest1()
+		var dValues = new float[,] {
+			{ 0.7f, 0.1f, 0.2f },
+			{ 0.1f, 0.5f, 0.4f },
+			{ 0.02f, 0.9f, 0.08f },
+		};
+		var targets = new int[] { 0, 1, 1 };
+		var dInputs = ArrayFactory.NewSameSize(dValues);
+		var expected = new float[,]
 		{
-			var dValues = new float[,] {
-				{ 0.7f, 0.1f, 0.2f },
-				{ 0.1f, 0.5f, 0.4f },
-				{ 0.02f, 0.9f, 0.08f },
-			};
-			var targets = new int[] { 0, 1, 1 };
-			var dInputs = ArrayFactory.NewSameSize(dValues);
-			var expected = new float[,]
-			{
-				{-0.1f       ,  0.03333333f,  0.06666667f},
-				{ 0.03333333f, -0.16666667f,  0.13333333f},
-				{ 0.00666667f, -0.03333333f,  0.02666667f },
-			};
-			ActivationLossSoftMaxCategoricalCrossEntropy.Backward(targets, dValues, dInputs);
-			Assert.That(dInputs, Is.EqualTo(expected).Within(0.00001f));
-		}
+			{-0.1f       ,  0.03333333f,  0.06666667f},
+			{ 0.03333333f, -0.16666667f,  0.13333333f},
+			{ 0.00666667f, -0.03333333f,  0.02666667f },
+		};
+		ActivationLossSoftMaxCategoricalCrossEntropy.Backward(targets, dValues, dInputs);
+		Assert.That(dInputs, Is.EqualTo(expected).Within(0.00001f));
+	}
+	
+	[Test]
+	public void BackwardTest2()
+	{
+		var dValues = new float[,] {
+			{ 0.7f, 0.1f, 0.2f },
+			{ 0.1f, 0.5f, 0.4f },
+		};
+		var targets = new int[] { 0, 2 };
+		var dInputsA = ArrayFactory.NewSameSize(dValues);
+		var dInputsB = ArrayFactory.NewSameSize(dValues);
 		
-		[Test]
-		public void BackwardTest2()
-		{
-			var dValues = new float[,] {
-				{ 0.7f, 0.1f, 0.2f },
-				{ 0.1f, 0.5f, 0.4f },
-			};
-			var targets = new int[] { 0, 2 };
-			var dInputsA = ArrayFactory.NewSameSize(dValues);
-			var dInputsB = ArrayFactory.NewSameSize(dValues);
-			
-			ActivationLossSoftMaxCategoricalCrossEntropy.Backward(targets, dValues, dInputsA);
+		ActivationLossSoftMaxCategoricalCrossEntropy.Backward(targets, dValues, dInputsA);
 
-			var lossDInput = ArrayFactory.NewSameSize(dValues);
+		var lossDInput = ArrayFactory.NewSameSize(dValues);
 
-			LossCategoricalCrossEntropy.Backward(dValues, targets, lossDInput);
-			ActivationSoftMax.Backward(dValues, lossDInput, dInputsB);
+		LossCategoricalCrossEntropy.Backward(dValues, targets, lossDInput);
+		ActivationSoftMax.Backward(dValues, lossDInput, dInputsB);
 
-			Assert.That(dInputsA, Is.EqualTo(dInputsB).Within(0.00001f));
-		}
+		Assert.That(dInputsA, Is.EqualTo(dInputsB).Within(0.00001f));
 	}
 }

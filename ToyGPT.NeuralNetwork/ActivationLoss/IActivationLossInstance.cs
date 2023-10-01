@@ -1,11 +1,10 @@
 using System;
 using CommunityToolkit.HighPerformance;
 
-namespace ToyGPT.NeuralNetwork.ActivationLoss
+namespace ToyGPT.NeuralNetwork.ActivationLoss;
+
+public interface IActivationLossInstance
+	: IForwardActivationLossInstance
+	, IBackwardActivationLossInstance
 {
-	public interface IActivationLossInstance
-		: IForwardActivationLossInstance
-		, IBackwardActivationLossInstance
-	{
-	}
 }

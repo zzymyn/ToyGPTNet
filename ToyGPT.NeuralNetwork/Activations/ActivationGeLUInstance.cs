@@ -8,7 +8,7 @@ using ToyGPT.NeuralNetwork.Steps;
 
 namespace ToyGPT.NeuralNetwork.Activations;
 
-public sealed class ActivationSoftMaxInstance
+public sealed class ActivationGeLUInstance
 	: IActivationInstance
 	, INeuralNetworkStep
 {
@@ -18,7 +18,7 @@ public sealed class ActivationSoftMaxInstance
 
 	public ReadOnlyMemory2D<float> Outputs => m_Outputs;
 
-	public ActivationSoftMaxInstance(int batchSize, int inputSize)
+	public ActivationGeLUInstance(int batchSize, int inputSize)
 	{
 		m_BatchSize = batchSize;
 		m_Outputs = new float[batchSize, inputSize];
@@ -27,13 +27,13 @@ public sealed class ActivationSoftMaxInstance
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
-		ActivationSoftMax.Forward(inputs, m_Outputs);
+		ActivationGeLU.Forward(inputs, m_Outputs);
 		return m_Outputs;
 	}
 
 	public ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues)
 	{
-		ActivationSoftMax.Backward(m_Outputs, dValues, m_DInputs);
+		ActivationGeLU.Backward(m_Outputs, dValues, m_DInputs);
 		return m_DInputs;
 	}
 }

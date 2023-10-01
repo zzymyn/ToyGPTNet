@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
+using ToyGPT.NeuralNetwork.Steps;
 
 namespace ToyGPT.NeuralNetwork.Activations;
 
 public sealed class ActivationReLUInstance
 	: IActivationInstance
+	, INeuralNetworkStep
 {
 	private readonly int m_BatchSize;
 	private readonly float[,] m_Outputs;

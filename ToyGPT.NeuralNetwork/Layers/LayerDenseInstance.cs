@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
+using ToyGPT.NeuralNetwork.Steps;
 
 namespace ToyGPT.NeuralNetwork.Layers;
 
 public sealed class LayerDenseInstance
 	: ILayerInstance
+	, INeuralNetworkStep
 {
 	private readonly int m_BatchSize;
 	private readonly int m_InputSize;

@@ -205,6 +205,18 @@ public static class MMath
 		}
 	}
 
+	public static void Add(ReadOnlySpan<float> a, ReadOnlySpan<float> b, Span<float> r)
+	{
+		Validate.True(a.Length == b.Length);
+		Validate.True(a.Length == r.Length);
+
+		var iMax = a.Length;
+		for (int i = 0; i < iMax; ++i)
+		{
+			r[i] = a[i] + b[i];
+		}
+	}
+
 	public static void ReLU(ReadOnlySpan<float> a, Span<float> r)
 	{
 		Validate.True(a.Length == r.Length);

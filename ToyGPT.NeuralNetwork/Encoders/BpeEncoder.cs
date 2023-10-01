@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,112 +12,131 @@ namespace ToyGPT.NeuralNetwork.Encoders
 	public partial class BpeEncoder
 		: IEncoder
 	{
-		private readonly Dictionary<string, int> m_Encoding;
-		private readonly Dictionary<int, string> m_Decoding;
-		private readonly Dictionary<byte, char> m_ByteEncoder;
-		private readonly Dictionary<char, byte> m_ByteDecoder;
-		private readonly Dictionary<(string, string), int> m_BpeRanks = new();
-		private readonly Regex m_Pat = MakePat();
-		private readonly Dictionary<string, string[]> m_Cache = new();
+		private readonly Dictionary<byte, int> m_ByteToToken = new();
+		private readonly Dictionary<int, byte[]> m_TokenToBytes = new();
 
-		public BpeEncoder(Dictionary<string, int> encoding, List<(string, string)> bpes)
+		private readonly Dictionary<(int, int), int> m_Bps = new();
+		private readonly Dictionary<(int, int), int> m_BpRanks = new();
+		private readonly Regex m_Pat = MakePat();
+		private readonly Dictionary<string, int[]> m_Cache = new();
+
+		public BpeEncoder(Dictionary<string, int> encoding, List<(string, string)> bytePairs)
 		{
-			m_Encoding = encoding;
-			m_Decoding = encoding.ToDictionary(x => x.Value, x => x.Key);
-			m_ByteEncoder = BytesToUnicode();
-			m_ByteDecoder = m_ByteEncoder.ToDictionary(x => x.Value, x => x.Key);
-			for (int i = 0, iMax = bpes.Count; i < iMax; i++)
+			var byteEncoder = BytesToUnicode();
+			var byteDecoder = byteEncoder.ToDictionary(x => x.Value, x => x.Key);
+
+			foreach (var (b, c) in byteEncoder)
 			{
-				m_BpeRanks[bpes[i]] = i;
+				m_ByteToToken[b] = encoding[c.ToString()];
+			}
+
+			foreach (var (enctext, token) in encoding)
+			{
+				var bytes = enctext.Select(a => byteDecoder[a]).ToArray();
+				m_TokenToBytes[token] = bytes;
+			}
+
+			for (int i = 0, iMax = bytePairs.Count; i < iMax; i++)
+			{
+				var (str0, str1) = bytePairs[i];
+
+				var b0 = encoding[str0];
+				var b1 = encoding[str1];
+
+				m_Bps[(b0, b1)] = encoding[$"{str0}{str1}"];
+				m_BpRanks[(b0, b1)] = i;
 			}
 		}
 
 		public List<int> Encode(ReadOnlySpan<char> text)
 		{
-			var bytes = new byte[8];
-			var chars = new char[8];
+			var utf8Encoder = new Utf8Encoder();
+			var mTokens = new List<int>();
 			var tokens = new List<int>();
 
 			foreach (var m in m_Pat.EnumerateMatches(text))
 			{
-				var byteCount = ConvertBytes(text.Slice(m.Index, m.Length), ref bytes);
+				var mSpan = text.Slice(m.Index, m.Length);
+				var mStr = new string(mSpan);
 
-				if (bytes.Length > chars.Length)
+				if (m_Cache.TryGetValue(mStr, out var cached))
 				{
-					chars = new char[bytes.Length];
+					tokens.AddRange(cached);
+					continue;
 				}
 
-				for (int i = 0; i < byteCount; i++)
+				var bytes = utf8Encoder.GetBytes(mSpan);
+
+				mTokens.Clear();
+				foreach (var b in bytes)
 				{
-					chars[i] = m_ByteEncoder[bytes[i]];
+					mTokens.Add(m_ByteToToken[b]);
 				}
 
-				var a = new string(chars, 0, byteCount);
+				MergeTokenPairs(mTokens);
 
-				foreach (var b in DoBpe(a))
-				{
-					tokens.Add(m_Encoding[b]);
-				}
+				m_Cache[mStr] = mTokens.ToArray();
+				tokens.AddRange(mTokens);
 			}
 
 			return tokens;
 		}
 
-		private int ConvertBytes(ReadOnlySpan<char> text, ref byte[] bytes)
+		public string Decode(IEnumerable<int> tokens)
 		{
-			var n = Encoding.UTF8.GetByteCount(text);
-			if (n > bytes.Length)
+			var bytes = new List<byte>();
+
+			foreach (var token in tokens)
 			{
-				bytes = new byte[2 * bytes.Length];
+				foreach (var c in m_TokenToBytes[token])
+				{
+					bytes.Add(c);
+				}
 			}
-			Encoding.UTF8.GetBytes(text, bytes);
-			return n;
+
+			return Encoding.UTF8.GetString(CollectionsMarshal.AsSpan(bytes));
 		}
 
-		public string[] DoBpe(string text)
+		public void ClearCache()
 		{
-			if (m_Cache.TryGetValue(text, out var cachedValue))
-				return cachedValue;
+			m_Cache.Clear();
+		}
 
-			var word = text.Select(c => new string(c, 1)).ToList();
-
-			while (word.Count > 1)
+		public void MergeTokenPairs(List<int> tokens)
+		{
+			while (tokens.Count > 1)
 			{
-				var bestPair = GetBestPair(word);
+				var bestPair = GetBestPair(tokens);
 				if (!bestPair.HasValue)
 					break;
 				var (p0, p1) = bestPair.Value;
 
-				for (int i = 1; i < word.Count; ++i)
+				for (int i = 1; i < tokens.Count; ++i)
 				{
-					if (word[i - 1] == p0 && word[i] == p1)
+					if (tokens[i - 1] == p0 && tokens[i] == p1)
 					{
-						word[i - 1] = p0 + p1;
-						word.RemoveAt(i);
+						tokens[i - 1] = m_Bps[(p0, p1)];
+						tokens.RemoveAt(i);
 						--i;
 					}
 				}
 			}
-
-			var wordArray = word.ToArray();
-			m_Cache[text] = wordArray;
-			return wordArray;
 		}
 
-		private (string, string)? GetBestPair(List<string> word)
+		private (int, int)? GetBestPair(List<int> tokens)
 		{
-			if (word.Count <= 1)
+			if (tokens.Count <= 1)
 				return null;
 
 			int bestRank = int.MaxValue;
-			(string, string)? bestPair = default;
+			(int, int)? bestPair = default;
 
-			var p0 = word[0];
+			var p0 = tokens[0];
 
-			for (int i = 1; i < word.Count; ++i)
+			for (int i = 1; i < tokens.Count; ++i)
 			{
-				var p1 = word[i];
-				if (m_BpeRanks.TryGetValue((p0, p1), out var rank) && rank < bestRank)
+				var p1 = tokens[i];
+				if (m_BpRanks.TryGetValue((p0, p1), out var rank) && rank < bestRank)
 				{
 					bestRank = rank;
 					bestPair = (p0, p1);
@@ -158,5 +178,45 @@ namespace ToyGPT.NeuralNetwork.Encoders
 
 		[GeneratedRegex(@"'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+", RegexOptions.Compiled)]
 		private static partial Regex MakePat();
+
+		private struct Utf8Encoder
+		{
+			private byte[] m_Bytes = new byte[8];
+
+			public Utf8Encoder()
+			{
+			}
+
+			public ReadOnlySpan<byte> GetBytes(ReadOnlySpan<char> text)
+			{
+				var n = Encoding.UTF8.GetByteCount(text);
+				if (n > m_Bytes.Length)
+				{
+					m_Bytes = new byte[2 * m_Bytes.Length];
+				}
+				Encoding.UTF8.GetBytes(text, m_Bytes);
+				return m_Bytes.AsSpan(0, n);
+			}
+		}
+
+		private struct Utf8Decoder
+		{
+			private char[] m_Chars = new char[8];
+
+			public Utf8Decoder()
+			{
+			}
+
+			public ReadOnlySpan<char> GetChars(ReadOnlySpan<byte> bytes)
+			{
+				var n = Encoding.UTF8.GetCharCount(bytes);
+				if (n > m_Chars.Length)
+				{
+					m_Chars = new char[2 * m_Chars.Length];
+				}
+				Encoding.UTF8.GetChars(bytes, m_Chars);
+				return m_Chars.AsSpan(0, n);
+			}
+		}
 	}
 }

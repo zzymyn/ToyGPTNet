@@ -4,16 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
-using ToyGPT.NeuralNetwork.Steps;
 
 namespace ToyGPT.NeuralNetwork.Layers;
 
-public sealed class LayerMultiheadCausalAttention
+public sealed class MultiheadCausalAttention
 {
 	private readonly int m_HeadCount;
 	private float[,]? m_Outputs;
 
-	public LayerMultiheadCausalAttention(int headCount)
+	public MultiheadCausalAttention(int headCount)
 	{
 		m_HeadCount = headCount;
 	}
@@ -22,7 +21,7 @@ public sealed class LayerMultiheadCausalAttention
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> qs, ReadOnlySpan2D<float> ks, ReadOnlySpan2D<float> vs)
 	{
-		ArrayFactory.ResizeHeight(ref m_Outputs, qs.Height, qs.Width);
+		ArrayFactory.Resize(ref m_Outputs, qs.Height, qs.Width);
 
 		var headStep = qs.Width / m_HeadCount;
 		var h0 = 0;

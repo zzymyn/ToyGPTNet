@@ -45,9 +45,9 @@ public static class ArrayFactory
 		return new float[input.GetLength(0), weights.GetLength(0)];
 	}
 
-	public static void ResizeHeight([NotNull] ref float[,]? arr, int height, int width)
+	public static void Resize([NotNull] ref float[,]? arr, int height, int width)
 	{
-		if (arr == null || arr.GetLength(0) != height)
+		if (arr == null || arr.GetLength(0) != height || arr.GetLength(1) != width)
 		{
 			arr = new float[height, width];
 		}

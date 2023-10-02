@@ -7,7 +7,6 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using ToyGPT.NeuralNetwork.ActivationLoss;
 using ToyGPT.NeuralNetwork.Activations;
-using ToyGPT.NeuralNetwork.Loss;
 
 namespace ToyGPT.NeuralNetwork.Tests;
 
@@ -29,7 +28,7 @@ internal class ActivationLossSoftMaxCategoricalCrossEntropyTests
 			{ 0.03333333f, -0.16666667f,  0.13333333f},
 			{ 0.00666667f, -0.03333333f,  0.02666667f },
 		};
-		ActivationLossSoftMaxCategoricalCrossEntropy.Backward(targets, dValues, dInputs);
+		MMath.DSoftMaxCategoricalCrossEntropy(targets, dValues, dInputs);
 		Assert.That(dInputs, Is.EqualTo(expected).Within(0.00001f));
 	}
 	
@@ -43,13 +42,13 @@ internal class ActivationLossSoftMaxCategoricalCrossEntropyTests
 		var targets = new int[] { 0, 2 };
 		var dInputsA = ArrayFactory.NewSameSize(dValues);
 		var dInputsB = ArrayFactory.NewSameSize(dValues);
-		
-		ActivationLossSoftMaxCategoricalCrossEntropy.Backward(targets, dValues, dInputsA);
+
+		MMath.DSoftMaxCategoricalCrossEntropy(targets, dValues, dInputsA);
 
 		var lossDInput = ArrayFactory.NewSameSize(dValues);
 
-		LossCategoricalCrossEntropy.Backward(dValues, targets, lossDInput);
-		ActivationSoftMax.Backward(dValues, lossDInput, dInputsB);
+		MMath.DCategoricalCrossEntropy(dValues, targets, lossDInput);
+		MMath.DSoftmax(dValues, lossDInput, dInputsB);
 
 		Assert.That(dInputsA, Is.EqualTo(dInputsB).Within(0.00001f));
 	}

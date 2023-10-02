@@ -14,19 +14,4 @@
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Steps\ChainedForwardStep.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ChainedForwardStep.tt</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Steps\ChainedForwardStep.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ChainedForwardStep.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-
 </Project>

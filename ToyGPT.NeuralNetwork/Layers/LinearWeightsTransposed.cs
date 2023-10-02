@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
-using ToyGPT.NeuralNetwork.Steps;
 
 namespace ToyGPT.NeuralNetwork.Layers;
 
 public sealed class LinearWeightsTransposed
-	: INeuralNetworkStep
 {
 	private readonly ReadOnlyMemory2D<float> m_WeightsT;
 	private float[,]? m_Outputs;
@@ -27,9 +25,9 @@ public sealed class LinearWeightsTransposed
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
-		ArrayFactory.ResizeHeight(ref m_Outputs, inputs.Height, m_WeightsT.Height);
-		ArrayFactory.ResizeHeight(ref m_DInputs, inputs.Height, m_WeightsT.Width);
-		ArrayFactory.ResizeHeight(ref m_DWeightsT, m_WeightsT.Height, m_WeightsT.Width);
+		ArrayFactory.Resize(ref m_Outputs, inputs.Height, m_WeightsT.Height);
+		ArrayFactory.Resize(ref m_DInputs, inputs.Height, m_WeightsT.Width);
+		ArrayFactory.Resize(ref m_DWeightsT, m_WeightsT.Height, m_WeightsT.Width);
 
 		MMath.MulMT(inputs, m_WeightsT.Span, m_Outputs);
 

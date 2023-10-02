@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -22,6 +23,21 @@ internal static class Validate
 			else
 			{
 				throw new ArgumentException($"Expected {message}, but wasn't.");
+			}
+		}
+	}
+
+	public static void NotNull([NotNull] object? a, [CallerArgumentExpression(nameof(a))] string? message = null)
+	{
+		if (a is null)
+		{
+			if (message is null)
+			{
+				throw new ArgumentNullException();
+			}
+			else
+			{
+				throw new ArgumentNullException(message);
 			}
 		}
 	}

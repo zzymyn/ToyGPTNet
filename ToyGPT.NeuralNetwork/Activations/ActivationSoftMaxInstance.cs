@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
-using ToyGPT.NeuralNetwork.Steps;
 
 namespace ToyGPT.NeuralNetwork.Activations;
 
 public sealed class ActivationSoftMaxInstance
 	: IActivationInstance
-	, INeuralNetworkStep
 {
 	private float[,]? m_Outputs;
 	private float[,]? m_DInputs;
@@ -24,17 +22,20 @@ public sealed class ActivationSoftMaxInstance
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
-		ArrayFactory.ResizeHeight(ref m_Outputs, inputs.Height, inputs.Width);
-		ArrayFactory.ResizeHeight(ref m_DInputs, inputs.Height, inputs.Width);
+		ArrayFactory.Resize(ref m_Outputs, inputs.Height, inputs.Width);
 
-		ActivationSoftMax.Forward(inputs, m_Outputs);
+		MMath.Softmax(inputs, m_Outputs);
 
 		return m_Outputs;
 	}
 
 	public ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues)
 	{
-		ActivationSoftMax.Backward(m_Outputs, dValues, m_DInputs);
+		Validate.NotNull(m_Outputs);
+		ArrayFactory.Resize(ref m_DInputs, inputs.Height, inputs.Width);
+
+		MMath.DSoftmax(m_Outputs, dValues, m_DInputs);
+
 		return m_DInputs;
 	}
 }

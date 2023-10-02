@@ -142,24 +142,14 @@ public class TransformerBlockTests
 			{ -21.697927745394097f, 29.487303476918164f, -12.47260157688654f, 9.352939885423002f, -26.255314170448838f, -31.052763438643872f, 38.2383785962867f, -28.17032429423469f, -14.361066072775762f, -0.29906179355861084f, -64.87154223859528f, 26.593545210222718f, },
 			{ -8.728891183412443f, 17.895150646808553f, -56.540903539920485f, 35.71405290030045f, 20.682711721579274f, -7.95423720779214f, -20.698270050287576f, 19.00295058750639f, -11.289967754639784f, -0.5516241808981324f, 40.09172060872204f, 24.947509077050057f, },
 		};
-		var output = ArrayFactory.NewSameSize(inputs);
 
-		TransformerBlock.Forward(
-			inputs,
-			mhaUpWT,
-			mhaUpB,
-			mhaDownWT,
-			mhaDownB,
-			mhaLnG,
-			mhaLnB,
-			ffnUpW,
-			ffnUpB,
-			ffnDownWT,
-			ffnDownB,
-			ffnLnG,
-			ffnLnB,
-			headCount,
-			output);
+		var layer = new TransformerBlock(
+			new(mhaLnG, mhaLnB),
+			new(new(mhaUpWT, mhaUpB), new(headCount), new(mhaDownWT, mhaDownB)),
+			new(ffnLnG, ffnLnB),
+			new(new(ffnUpW, ffnUpB), new(ffnDownWT, ffnDownB)));
+
+		var output = layer.Forward(inputs).ToArray();
 
 		Assert.That(output, Is.EqualTo(expected).Within(0.0001f));
 	}

@@ -16,7 +16,7 @@ public class ActivationSoftMaxTests
 		var expected = new float[,] {
 			{ 0.89528266f, 0.02470831f, 0.08000903f }
 		};
-		ActivationSoftMax.Forward(inputs, outputs);
+		MMath.Softmax(inputs, outputs);
 		Assert.That(outputs, Is.EqualTo(expected).Within(0.00001f));
 	}
 
@@ -34,7 +34,7 @@ public class ActivationSoftMaxTests
 			{ 9.99811129e-1f, 2.23163963e-5f, 1.66554348e-4f },
 			{ 5.13097164e-1f, 3.58333899e-1f, 1.28568936e-1f },
 		};
-		ActivationSoftMax.Forward(inputs, outputs);
+		MMath.Softmax(inputs, outputs);
 		Assert.That(outputs, Is.EqualTo(expected).Within(0.00001f));
 	}
 
@@ -60,7 +60,7 @@ public class ActivationSoftMaxTests
 			{ 0.03333333f, -0.16666667f,  0.13333333f},
 			{ 0.00666667f, -0.03333333f,  0.02666667f },
 		};
-		ActivationSoftMax.Backward(inputs, dValues, dInputs);
+		MMath.DSoftmax(inputs, dValues, dInputs);
 		Assert.That(dInputs, Is.EqualTo(expected).Within(0.00001f));
 	}
 
@@ -86,7 +86,7 @@ public class ActivationSoftMaxTests
 			{0.013f,    0.015f,   -0.028f},
 			{0.00508f, -0.0414f,   0.03632f},
 		};
-		ActivationSoftMax.Backward(inputs, dValues, dInputs);
+		MMath.DSoftmax(inputs, dValues, dInputs);
 		Assert.That(dInputs, Is.EqualTo(expected).Within(0.00001f));
 	}
 	
@@ -106,7 +106,7 @@ public class ActivationSoftMaxTests
 		{
 			{0.046f, -0.049f,  0.003f},
 		};
-		ActivationSoftMax.Backward(inputs, dValues, dInputs);
+		MMath.DSoftmax(inputs, dValues, dInputs);
 		Assert.That(dInputs, Is.EqualTo(expected).Within(0.00001f));
 	}
 }

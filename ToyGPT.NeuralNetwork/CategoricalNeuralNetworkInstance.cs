@@ -54,7 +54,7 @@ public sealed class CategoricalNeuralNetworkInstance
 		m_Biases = new float[m_LayerCount][];
 		m_Layers = new ILinear[m_LayerCount];
 		m_Activations = new IActivationInstance[m_LayerCount];
-		m_FinalActivationLoss = new ActivationLossSoftMaxCategoricalCrossEntropyInstance(batchSize, m_OutputNodeCount);
+		m_FinalActivationLoss = new ActivationLossSoftMaxCategoricalCrossEntropyInstance();
 
 		for (int i = 0; i < m_LayerCount; ++i)
 		{

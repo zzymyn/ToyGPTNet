@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
-using ToyGPT.NeuralNetwork.Steps;
 
 namespace ToyGPT.NeuralNetwork.Layers;
 
@@ -20,7 +19,7 @@ public sealed class Add
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> a, ReadOnlySpan2D<float> b)
 	{
-		ArrayFactory.ResizeHeight(ref m_Outputs, a.Height, a.Width);
+		ArrayFactory.Resize(ref m_Outputs, a.Height, a.Width);
 
 		MMath.Add(a, b, m_Outputs);
 

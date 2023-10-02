@@ -367,6 +367,31 @@ public static class MMath
 		return variance / iMax;
 	}
 
+	public static void Softmax(ReadOnlySpan2D<float> a, Span2D<float> r)
+	{
+		var yMax = a.Height;
+		for (var y = 0; y < yMax; ++y)
+		{
+			var rowIn = a.GetRowSpan(y);
+			var rowOut = r.GetRowSpan(y);
+
+			Softmax(rowIn, rowOut);
+		}
+	}
+
+	public static void DSoftmax(ReadOnlySpan2D<float> r, ReadOnlySpan2D<float> Dr, Span2D<float> Da)
+	{
+		var yMax = r.Height;
+		for (var y = 0; y < yMax; ++y)
+		{
+			var rowIn = r.GetRowSpan(y);
+			var rowDVal = Dr.GetRowSpan(y);
+			var rowDIn = Da.GetRowSpan(y);
+
+			DSoftmax(rowIn, rowDVal, rowDIn);
+		}
+	}
+
 	public static void Softmax(ReadOnlySpan<float> a, Span<float> r)
 	{
 		Softmax(a, r, Max(a));
@@ -460,8 +485,136 @@ public static class MMath
 		}
 	}
 
+	public static void CategoricalCrossEntropy(ReadOnlySpan2D<float> inputs, ReadOnlySpan<int> expected, Span<float> losses)
+	{
+		Validate.True(inputs.Height == expected.Length);
+		Validate.True(inputs.Height == losses.Length);
 
-	private static float Max(ReadOnlySpan<float> rowIn)
+		var yMax = inputs.Height;
+		var xMax = inputs.Width;
+		for (var y = 0; y < yMax; ++y)
+		{
+			var rowIn = inputs.GetRowSpan(y);
+			var category = expected[y];
+
+			if (category < 0 || category >= xMax)
+				throw new ArgumentException(null, nameof(expected));
+
+			var v = rowIn[category];
+
+			// because log(0) is undefined, we clamp the vales to be greater than 1e-7
+			// to avoid this problem, we also clamp the values to be less than 1 - 1e-7
+			// to even out the bias towards 1
+
+			v = Math.Clamp(v, 1e-7f, 1.0f - 1e-7f);
+
+			losses[y] = -MathF.Log(v);
+		}
+	}
+
+	public static void DCategoricalCrossEntropy(ReadOnlySpan2D<float> inputs, ReadOnlySpan<int> expected, Span2D<float> dInputs)
+	{
+		Validate.True(expected.Length == inputs.Height);
+		Validate.True(inputs.Height == dInputs.Height);
+		Validate.True(inputs.Width == dInputs.Width);
+
+		var yMax = dInputs.Height;
+		var xMax = dInputs.Width;
+		for (var y = 0; y < yMax; ++y)
+		{
+			var rowIn = inputs.GetRowSpan(y);
+			var rowDIn = dInputs.GetRowSpan(y);
+			var category = expected[y];
+
+			if (category < 0 || category > xMax)
+				throw new ArgumentException(null, nameof(expected));
+
+			for (var x = 0; x < xMax; ++x)
+			{
+				rowDIn[x] = 0.0f;
+			}
+
+			var dVal = rowIn[category];
+
+			rowDIn[category] = (dVal != 0.0f ? -1.0f / dVal : 0.0f) / yMax;
+		}
+	}
+
+	public static void DSoftMaxCategoricalCrossEntropy(ReadOnlySpan<int> expected, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs)
+	{
+		Validate.True(expected.Length == dInputs.Height);
+		Validate.True(dInputs.Height == dValues.Height);
+		Validate.True(dInputs.Width == dValues.Width);
+
+		var yMax = dInputs.Height;
+		var xMax = dInputs.Width;
+		for (var y = 0; y < yMax; ++y)
+		{
+			var rowDVal = dValues.GetRowSpan(y);
+			var rowDIn = dInputs.GetRowSpan(y);
+			var category = expected[y];
+
+			if (category < 0 || category > xMax)
+				throw new ArgumentException(null, nameof(expected));
+
+			for (var x = 0; x < xMax; ++x)
+			{
+				var a = rowDVal[x];
+				if (x == category)
+					a -= 1.0f;
+				rowDIn[x] = a / yMax;
+			}
+		}
+	}
+
+	public static void CrossEntropy(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> expecteds, Span<float> losses)
+	{
+		Validate.True(inputs.Height == expecteds.Height);
+		Validate.True(inputs.Width == expecteds.Width);
+		Validate.True(inputs.Height == losses.Length);
+
+		var rMax = inputs.Height;
+		var xMax = inputs.Width;
+		for (var r = 0; r < rMax; ++r)
+		{
+			var inRow = inputs.GetRowSpan(r);
+			var exRow = expecteds.GetRowSpan(r);
+
+			var loss = 0.0f;
+
+			for (var x = 0; x < xMax; ++x)
+			{
+				loss += exRow[x] * MathF.Log(inRow[x]);
+			}
+
+			losses[r] = -loss;
+		}
+	}
+
+	public static void DCrossEntropy(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> expecteds, Span2D<float> dInputs)
+	{
+		Validate.True(inputs.Height == dInputs.Height);
+		Validate.True(inputs.Width == dInputs.Width);
+		Validate.True(inputs.Height == expecteds.Height);
+		Validate.True(inputs.Width == expecteds.Width);
+
+		var yMax = dInputs.Height;
+		var xMax = dInputs.Width;
+		for (var y = 0; y < yMax; ++y)
+		{
+			var rowIn = inputs.GetRowSpan(y);
+			var rowDIn = dInputs.GetRowSpan(y);
+			var category = expecteds.GetRowSpan(y);
+
+			for (var x = 0; x < xMax; ++x)
+			{
+				var dVal = rowIn[x];
+				rowDIn[x] = (dVal != 0.0f ? -category[x] / dVal : 0.0f) / yMax;
+			}
+		}
+	}
+
+	public static float Max(ReadOnlySpan<float> rowIn)
 	{
 		var max = float.MinValue;
 

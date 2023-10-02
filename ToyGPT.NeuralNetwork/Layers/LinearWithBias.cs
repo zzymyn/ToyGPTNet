@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
-using ToyGPT.NeuralNetwork.Steps;
 
 namespace ToyGPT.NeuralNetwork.Layers;
 
 public sealed class LinearWithBias
-	: INeuralNetworkStep
 {
 	private readonly ReadOnlyMemory2D<float> m_Weights;
 	private readonly ReadOnlyMemory<float> m_Biases;
@@ -31,9 +29,9 @@ public sealed class LinearWithBias
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
-		ArrayFactory.ResizeHeight(ref m_Outputs, inputs.Height, m_Weights.Width);
-		ArrayFactory.ResizeHeight(ref m_DInputs, inputs.Height, m_Weights.Height);
-		ArrayFactory.ResizeHeight(ref m_DWeights, m_Weights.Height, m_Weights.Width);
+		ArrayFactory.Resize(ref m_Outputs, inputs.Height, m_Weights.Width);
+		ArrayFactory.Resize(ref m_DInputs, inputs.Height, m_Weights.Height);
+		ArrayFactory.Resize(ref m_DWeights, m_Weights.Height, m_Weights.Width);
 		ArrayFactory.Resize(ref m_DBiases, m_Biases.Length);
 
 		MMath.MulMMAddR(inputs, m_Weights.Span, m_Biases.Span, m_Outputs);

@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
-using ToyGPT.NeuralNetwork.Steps;
 
 namespace ToyGPT.NeuralNetwork.Layers;
 
 public class LayerNormalization
-	: INeuralNetworkForwardStep
 {
 	private readonly ReadOnlyMemory<float> m_G;
 	private readonly ReadOnlyMemory<float> m_B;
@@ -25,7 +23,7 @@ public class LayerNormalization
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
-		ArrayFactory.ResizeHeight(ref m_Outputs, inputs.Height, inputs.Width);
+		ArrayFactory.Resize(ref m_Outputs, inputs.Height, inputs.Width);
 
 		var yMax = inputs.Height;
 
@@ -37,26 +35,5 @@ public class LayerNormalization
 		}
 
 		return m_Outputs;
-	}
-
-	// TODO: remove
-	public static void Forward(
-		ReadOnlySpan2D<float> inputs,
-		ReadOnlySpan<float> g,
-		ReadOnlySpan<float> b,
-		Span2D<float> outputs)
-	{
-		Validate.ArraysSameSize(inputs, outputs);
-		Validate.ArraySize(g, inputs.Width);
-		Validate.ArraySize(b, inputs.Width);
-
-		var yMax = inputs.Height;
-
-		for (var y = 0; y < yMax; ++y)
-		{
-			var rowIn = inputs.GetRowSpan(y);
-			var rowOut = outputs.GetRowSpan(y);
-			MMath.LayerNormalization(rowIn, g, b, rowOut);
-		}
 	}
 }

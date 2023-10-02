@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using ToyGPT.NeuralNetwork.Loss;
+using ToyGPT.NeuralNetwork.Steps;
 
 namespace ToyGPT.NeuralNetwork.Tests;
 
@@ -20,8 +20,11 @@ internal class LossCategoricalCrossEntropyTests
 		};
 		var targets = new int[] { 0, 1, 1 };
 		var expected = new float[] { 0.35667494f, 0.69314818f, 0.10536052f };
-		var actual = ArrayFactory.NewFromWidth(inputs);
-		LossCategoricalCrossEntropy.Forward(inputs, targets, actual);
+
+		var loss = new CategoricalCrossEntropy();
+
+		var actual = loss.Forward(inputs, targets).ToArray();
+
 		Assert.That(actual, Is.EqualTo(expected).Within(0.00001f));
 	}
 
@@ -39,8 +42,12 @@ internal class LossCategoricalCrossEntropyTests
 			{ 0, -0.66666667f, 0 },
 			{ 0, -0.37037037f, 0 },
 		};
-		var actual = ArrayFactory.NewSameSize(inputs);
-		LossCategoricalCrossEntropy.Backward(inputs, targets, actual);
+
+		var loss = new CategoricalCrossEntropy();
+
+		loss.Forward(inputs, targets);
+		var actual = loss.Backward(inputs, targets).ToArray();
+
 		Assert.That(actual, Is.EqualTo(expected).Within(0.00001f));
 	}
 
@@ -56,8 +63,12 @@ internal class LossCategoricalCrossEntropyTests
 			{ -0.71428571f , 0, 0},
 			{ 0, -1, 0 },
 		};
-		var actual = ArrayFactory.NewSameSize(inputs);
-		LossCategoricalCrossEntropy.Backward(inputs, targets, actual);
+
+		var loss = new CategoricalCrossEntropy();
+
+		loss.Forward(inputs, targets);
+		var actual = loss.Backward(inputs, targets).ToArray();
+
 		Assert.That(actual, Is.EqualTo(expected).Within(0.00001f));
 	}
 }

@@ -9,42 +9,35 @@ namespace ToyGPT.NeuralNetwork.Layers;
 
 public class TransformerBlock
 {
+	private readonly LayerNormalization m_MhaLn;
+	private readonly MultiheadCausalSelfAttention m_Mha;
+	private readonly Add m_MhaAdd = new();
+	private readonly LayerNormalization m_FfnLn;
+	private readonly PositionWiseFeedForward m_Ffn;
+	private readonly Add m_FfnAdd = new();
+	private float[,]? m_Outputs;
+
 	public TransformerBlock(
 		LayerNormalization mhaLn,
-		LinearWeightsTransposedWithBias mhaUp,
-		LayerMultiheadCausalSelfAttention mha,
-		LinearWeightsTransposedWithBias mhaDown,
+		MultiheadCausalSelfAttention mha,
 		LayerNormalization ffnLn,
 		PositionWiseFeedForward ffn)
 	{
+		m_MhaLn = mhaLn;
+		m_Mha = mha;
+		m_FfnLn = ffnLn;
+		m_Ffn = ffn;
 	}
 
-	public static void Forward(
-		ReadOnlySpan2D<float> inputs,
-		ReadOnlySpan2D<float> mhaUpWT,
-		ReadOnlySpan<float> mhaUpB,
-		ReadOnlySpan2D<float> mhaDownWT,
-		ReadOnlySpan<float> mhaDownB,
-		ReadOnlySpan<float> mhaLnG,
-		ReadOnlySpan<float> mhaLnB,
-		ReadOnlySpan2D<float> ffnUpWT,
-		ReadOnlySpan<float> ffnUpB,
-		ReadOnlySpan2D<float> ffnDownWT,
-		ReadOnlySpan<float> ffnDownB,
-		ReadOnlySpan<float> ffnLnG,
-		ReadOnlySpan<float> ffnLnB,
-		int headCount,
-		Span2D<float> output)
+	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
-		var tmp = new float[inputs.Height, inputs.Width].AsSpan2D();
-		var mhaOut = new float[inputs.Height, inputs.Width].AsSpan2D();
+		ArrayFactory.Resize(ref m_Outputs, inputs.Height, inputs.Width);
 
-		LayerNormalization.Forward(inputs, mhaLnG, mhaLnB, tmp);
-		LayerMultiheadCausalSelfAttention.Forward(tmp, mhaUpWT, mhaUpB, mhaDownWT, mhaDownB, headCount, mhaOut);
-		MMath.Add(inputs, mhaOut, mhaOut);
-
-		LayerNormalization.Forward(mhaOut, ffnLnG, ffnLnB, tmp);
-		PositionWiseFeedForward.Forward(tmp, ffnUpWT, ffnUpB, ffnDownWT, ffnDownB, output);
-		MMath.Add(mhaOut, output, output);
+		var mhaLnOut = m_MhaLn.Forward(inputs);
+		var mhaOut = m_Mha.Forward(mhaLnOut.Span);
+		var mhaAddOut = m_MhaAdd.Forward(inputs, mhaOut.Span);
+		var ffnLnOut = m_FfnLn.Forward(mhaAddOut.Span);
+		var ffnOut = m_Ffn.Forward(ffnLnOut.Span);
+		return m_FfnAdd.Forward(mhaAddOut.Span, ffnOut.Span);
 	}
 }

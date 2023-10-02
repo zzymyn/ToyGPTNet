@@ -11,7 +11,7 @@ public class ActivationReLUTests
 		var inputs = new float[,] { { 0, 2, -1, 3.3f, -2.7f, 1.1f, 2.2f, -100f } };
 		var expected = new float[,] { { 0, 2, 0, 3.3f, 0, 1.1f, 2.2f, 0 } };
 
-		var relu = new ActivationReLUInstance();
+		var relu = new ReLU();
 
 		var outputs = relu.Forward(inputs).ToArray();
 		Assert.That(outputs, Is.EqualTo(expected).Within(0.00001f));
@@ -29,7 +29,7 @@ public class ActivationReLUTests
 			{ 1, 0, 1, 0, 1, 0, 1, 0 },
 		};
 
-		var relu = new ActivationReLUInstance();
+		var relu = new ReLU();
 
 		var outputs = relu.Forward(inputs).ToArray();
 		Assert.That(outputs, Is.EqualTo(expected).Within(0.00001f));
@@ -42,7 +42,7 @@ public class ActivationReLUTests
 		var dValues = new float[,] { { 1, 2, 3, 4, 5, 6, 7, 8 } };
 		var expected = new float[,] { { 0, 2, 0, 4, 0, 6, 7, 0 } };
 
-		var relu = new ActivationReLUInstance();
+		var relu = new ReLU();
 
 		relu.Forward(inputs);
 		var dInputs = relu.Backward(inputs, dValues).ToArray();
@@ -72,7 +72,7 @@ public class ActivationReLUTests
 			{ 0, 10, 11, 0 },
 		};
 
-		var relu = new ActivationReLUInstance();
+		var relu = new ReLU();
 
 		relu.Forward(inputs);
 		var dInputs = relu.Backward(inputs, dValues).ToArray();

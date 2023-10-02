@@ -7,13 +7,13 @@ using CommunityToolkit.HighPerformance;
 
 namespace ToyGPT.NeuralNetwork.Activations;
 
-public sealed class ActivationGeLUInstance
+public sealed class GeLU
 {
 	private float[,]? m_Outputs;
 
 	public ReadOnlyMemory2D<float> Outputs => m_Outputs;
 
-	public ActivationGeLUInstance()
+	public GeLU()
 	{
 	}
 

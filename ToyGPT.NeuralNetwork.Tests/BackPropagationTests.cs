@@ -29,7 +29,7 @@ internal class BackPropagationTests
 		var biases = new float[] { 2, 3, 0.5f };
 
 		var layer = new LinearWeightsTransposedWithBias(weights, biases);
-		var relu = new ActivationReLUInstance();
+		var relu = new ReLU();
 
 		var layerOutput = layer.Forward(inputs);
 		var reluOutput = relu.Forward(layerOutput.Span);

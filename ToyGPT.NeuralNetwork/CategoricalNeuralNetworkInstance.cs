@@ -58,15 +58,12 @@ public sealed class CategoricalNeuralNetworkInstance
 
 		for (int i = 0; i < m_LayerCount; ++i)
 		{
-			var inputSize = layers[i].Weight.GetLength(1);
-			var outputSize = layers[i].Weight.GetLength(0);
-
 			m_Weights[i] = layers[i].Weight;
 			m_Biases[i] = layers[i].Biases;
 			m_Layers[i] = new LinearWeightsTransposedWithBias(m_Weights[i], m_Biases[i]);
 			m_Activations[i] = (i == m_LayerCount - 1)
-				? new ActivationSoftMaxInstance()
-				: new ActivationReLUInstance();
+				? new Softmax()
+				: new ReLU();
 		}
 	}
 

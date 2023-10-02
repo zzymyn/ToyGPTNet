@@ -11,7 +11,7 @@ namespace ToyGPT.NeuralNetwork.Layers;
 public sealed class PositionWiseFeedForward
 {
 	public LinearWeightsTransposedWithBias m_Up;
-	public ActivationGeLUInstance m_Activation;
+	public GeLU m_Activation;
 	public LinearWeightsTransposedWithBias m_Down;
 
 	public ReadOnlyMemory2D<float> Outputs => m_Down.Outputs;
@@ -19,7 +19,7 @@ public sealed class PositionWiseFeedForward
 	public PositionWiseFeedForward(LinearWeightsTransposedWithBias fc, LinearWeightsTransposedWithBias proj)
 	{
 		m_Up = fc;
-		m_Activation = new ActivationGeLUInstance();
+		m_Activation = new GeLU();
 		m_Down = proj;
 	}
 

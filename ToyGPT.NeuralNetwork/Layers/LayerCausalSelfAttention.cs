@@ -27,35 +27,20 @@ public static class LayerCausalSelfAttention
 			throw new ArgumentException("scratch is too small");
 		}
 
-		MMath.MulMT(q, k, tmp);
+		LayerDense.ForwardMT(q, k, tmp);
 
 		{
 			var yMax = tmp.Height;
-			var xMax = tmp.Width;
 
 			var scale = 1.0f / MathF.Sqrt(q.Width);
 
 			for (var y = 0; y < yMax; ++y)
 			{
 				var row = tmp.GetRowSpan(y);
-
-				for (var x = 0; x < xMax; ++x)
-				{
-					if (x > y)
-					{
-						row[x] += nInf;
-					}
-					else
-					{
-						row[x] *= scale;
-					}
-				}
-
-				MMath.Softmax(row, row);
+				MMath.CausalSelfAttentionAndSoftmax(row, row, y, scale, nInf: nInf);
 			}
 		}
 
-		MMath.MulMM(tmp, v, r);
-
+		LayerDense.ForwardMM(tmp, v, r);
 	}
 }

@@ -276,6 +276,16 @@ public static class MMath
 		}
 	}
 
+	public static void DReLU(ReadOnlySpan<float> r, ReadOnlySpan<float> dR, Span<float> dA)
+	{
+		var xMax = r.Length;
+
+		for (var x = 0; x < xMax; ++x)
+		{
+			dA[x] = DReLU(r[x], dR[x]);
+		}
+	}
+
 	public static void GeLU(ReadOnlySpan<float> a, Span<float> r)
 	{
 		Validate.True(a.Length == r.Length);
@@ -336,6 +346,11 @@ public static class MMath
 
 	public static void Softmax(ReadOnlySpan<float> a, Span<float> r)
 	{
+		Softmax(a, r, Max(a));
+	}
+
+	private static void Softmax(ReadOnlySpan<float> a, Span<float> r, float max)
+	{
 		Validate.True(a.Length == r.Length);
 
 		// because overly large values in the input can cause overflow,
@@ -343,7 +358,6 @@ public static class MMath
 		// computing the exponential:
 
 		var iMax = a.Length;
-		var max = Max(a);
 
 		// keeping track of the sum, set each output to e^(x - max):
 
@@ -369,6 +383,61 @@ public static class MMath
 		}
 	}
 
+	public static void CausalSelfAttentionAndSoftmax(ReadOnlySpan<float> a, Span<float> r, int row, float scale, float nInf = -1e10f)
+	{
+		Validate.True(a.Length == r.Length);
+
+		var iMax = a.Length;
+		var max = 0.0f;
+
+		for (var i = 0; i < iMax; ++i)
+		{
+			var v = a[i];
+
+			if (i > row)
+			{
+				v = nInf;
+			}
+			else
+			{
+				v *= scale;
+			}
+
+			if (v > max)
+				max = v;
+
+			r[i] = v;
+		}
+
+		Softmax(r, r, max);
+	}
+
+	public static void DSoftmax(ReadOnlySpan<float> r, ReadOnlySpan<float> Dr, Span<float> Da)
+	{
+		var xMax = r.Length;
+
+		for (var x0 = 0; x0 < xMax; ++x0)
+		{
+			var Da_x0 = 0.0f;
+			var r_x0 = r[x0];
+
+			for (var x1 = 0; x1 < xMax; ++x1)
+			{
+				if (x0 == x1)
+				{
+					Da_x0 += Dr[x1] * (r_x0 - r_x0 * r_x0);
+				}
+				else
+				{
+					Da_x0 += Dr[x1] * -r_x0 * r[x1];
+				}
+			}
+
+			Da[x0] = Da_x0;
+		}
+	}
+
+
 	private static float Max(ReadOnlySpan<float> rowIn)
 	{
 		var max = float.MinValue;
@@ -382,11 +451,32 @@ public static class MMath
 		return max;
 	}
 
+	/// <summary>
+	/// Rectified Linear Unit
+	/// </summary>
+	/// <param name="a"></param>
+	/// <returns></returns>
 	public static float ReLU(float a)
 	{
 		return a < 0 ? 0 : a;
 	}
 
+	/// <summary>
+	/// Derivative of Rectified Linear Unit
+	/// </summary>
+	/// <param name="r"></param>
+	/// <param name="dR"></param>
+	/// <returns></returns>
+	public static float DReLU(float r, float dR)
+	{
+		return r <= 0 ? 0 : dR;
+	}
+
+	/// <summary>
+	/// Gaussian Error Linear Unit
+	/// </summary>
+	/// <param name="a"></param>
+	/// <returns></returns>
 	public static float GeLU(float a)
 	{
 		return a * 0.5f * (1.0f + MathF.Tanh(0.7978845608f * (a + 0.044715f * a * a * a)));

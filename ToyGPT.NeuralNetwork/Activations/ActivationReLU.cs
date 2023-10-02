@@ -14,7 +14,7 @@ public static class ActivationReLU
 		Validate.ArraysSameSize(inputs, outputs);
 
 		var yMax = inputs.Height;
-		var xMax = inputs.Width;
+
 		for (var y = 0; y < yMax; ++y)
 		{
 			var rowIn = inputs.GetRowSpan(y);
@@ -29,17 +29,14 @@ public static class ActivationReLU
 		Validate.ArraysSameSize(outputs, dInputs);
 
 		var yMax = outputs.Height;
-		var xMax = outputs.Width;
+
 		for (var y = 0; y < yMax; ++y)
 		{
 			var rowIn = outputs.GetRowSpan(y);
 			var rowDVal = dValues.GetRowSpan(y);
 			var rowDIn = dInputs.GetRowSpan(y);
 
-			for (var x = 0; x < xMax; ++x)
-			{
-				rowDIn[x] = rowIn[x] <= 0 ? 0 : rowDVal[x];
-			}
+			MMath.DReLU(rowIn, rowDVal, rowDIn);
 		}
 	}
 }

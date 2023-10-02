@@ -29,7 +29,7 @@ internal class BackPropagationTests
 		var biases = new float[] { 2, 3, 0.5f };
 
 		var layerOutput = ArrayFactory.NewLayerOutput(inputs, weights);
-		LayerDense.Forward(inputs, weights, biases, layerOutput);
+		LayerDense.ForwardMT(inputs, weights, biases, layerOutput);
 
 		var reluOutput = ArrayFactory.NewSameSize(layerOutput);
 		ActivationReLU.Forward(layerOutput, reluOutput);
@@ -40,7 +40,7 @@ internal class BackPropagationTests
 		var dInputs = ArrayFactory.NewSameSize(inputs);
 		var dWeights = ArrayFactory.NewSameSize(weights);
 		var dBiases = ArrayFactory.NewSameSize(biases);
-		LayerDense.Backward(inputs, weights, dRelu, dInputs, dWeights, dBiases);
+		LayerDense.BackwardMT(inputs, weights, dRelu, dInputs, dWeights, dBiases);
 
 		{
 			var yMax = weights.GetLength(0);

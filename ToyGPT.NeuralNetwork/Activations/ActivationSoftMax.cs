@@ -29,30 +29,13 @@ public static class ActivationSoftMax
 		Validate.ArraysSameSize(outputs, dInputs);
 
 		var yMax = outputs.Height;
-		var xMax = outputs.Width;
-		var iMax = outputs.Width;
 		for (var y = 0; y < yMax; ++y)
 		{
 			var rowIn = outputs.GetRowSpan(y);
 			var rowDVal = dValues.GetRowSpan(y);
 			var rowDIn = dInputs.GetRowSpan(y);
 
-			for (var x = 0; x < xMax; ++x)
-			{
-				rowDIn[x] = 0.0f;
-
-				for (var i = 0; i < iMax; ++i)
-				{
-					if (x == i)
-					{
-						rowDIn[x] += rowDVal[i] * (rowIn[x] - rowIn[x] * rowIn[x]);
-					}
-					else
-					{
-						rowDIn[x] += rowDVal[i] * -rowIn[x] * rowIn[i];
-					}
-				}
-			}
+			MMath.DSoftmax(rowIn, rowDVal, rowDIn);
 		}
 	}
 }

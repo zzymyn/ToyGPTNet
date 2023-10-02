@@ -44,13 +44,13 @@ public sealed class LayerDenseInstance
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
-		LayerDense.Forward(inputs, m_Weights.Span, m_Biases.Span, m_Outputs);
+		LayerDense.ForwardMT(inputs, m_Weights.Span, m_Biases.Span, m_Outputs);
 		return m_Outputs;
 	}
 
 	public ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues)
 	{
-		LayerDense.Backward(inputs, m_Weights.Span, dValues, m_DInputs, m_DWeights, m_DBiases);
+		LayerDense.BackwardMT(inputs, m_Weights.Span, dValues, m_DInputs, m_DWeights, m_DBiases);
 		return m_DInputs;
 	}
 }

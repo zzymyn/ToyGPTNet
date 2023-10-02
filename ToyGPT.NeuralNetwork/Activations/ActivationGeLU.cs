@@ -14,7 +14,7 @@ public static class ActivationGeLU
 		Validate.ArraysSameSize(inputs, outputs);
 
 		var yMax = inputs.Height;
-		var xMax = inputs.Width;
+
 		for (var y = 0; y < yMax; ++y)
 		{
 			var rowIn = inputs.GetRowSpan(y);

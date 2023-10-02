@@ -51,7 +51,9 @@ internal class LayerCausalSelfAttentionTests
 
 		var outputs = ArrayFactory.NewSameSize(q);
 
-		LayerCausalSelfAttention.Forward(q, k, v, outputs);
+		var scratch = new float[5 * 5];
+
+		LayerCausalSelfAttention.Forward(q, k, v, outputs, scratch: scratch);
 
 		Assert.That(outputs, Is.EqualTo(expected).Within(1e-6f));
 	}

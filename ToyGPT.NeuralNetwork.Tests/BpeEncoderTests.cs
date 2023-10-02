@@ -38,10 +38,10 @@ public class BpeEncoderTests
 
 	private static BpeEncoder LoadEncoder()
 	{
-		var encoderData = JsonNode.Parse(File.ReadAllText("../../../../Data/124M.encoder.json")) as JsonObject;
+		var encoderData = JsonNode.Parse(File.ReadAllText("../../../../Data/124M/encoder.json")) as JsonObject;
 		var encoding = encoderData!.ToDictionary(a => a.Key, a => (int)a.Value!);
 
-		var vocabData = File.ReadAllLines("../../../../Data/124M.vocab.bpe");
+		var vocabData = File.ReadAllLines("../../../../Data/124M/vocab.bpe");
 		var bpes = vocabData
 			.Where(a => !a.StartsWith("#"))
 			.Select(a => a.Split(" "))

@@ -50,6 +50,54 @@ public static class MMath
 	}
 
 	/// <summary>
+	/// Matrix multiplication:
+	/// <code>r = mul(a, b) + c</code>
+	/// </summary>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	/// <param name="r"></param>
+	public static void MulMMAddR(ReadOnlySpan2D<float> a, ReadOnlySpan2D<float> b, ReadOnlySpan<float> c, Span2D<float> r)
+	{
+		Validate.True(r != a);
+		Validate.True(r != b);
+		Validate.True(a.Height == r.Height);
+		Validate.True(a.Width == b.Height);
+		Validate.True(b.Width == r.Width);
+		Validate.True(r.Width == c.Length);
+
+		var yMax = r.Height;
+		var xMax = r.Width;
+		var iMax = b.Height;
+
+		for (int y = 0; y < yMax; ++y)
+		{
+			var r_y = r.GetRowSpan(y);
+
+			for (int x = 0; x < xMax; ++x)
+			{
+				r_y[x] = c[x];
+			}
+		}
+
+		for (int y = 0; y < yMax; ++y)
+		{
+			var r_y = r.GetRowSpan(y);
+			var a_y = a.GetRowSpan(y);
+
+			for (int i = 0; i < iMax; ++i)
+			{
+				var a_y_i = a_y[i];
+				var b_i = b.GetRowSpan(i);
+
+				for (int x = 0; x < xMax; ++x)
+				{
+					r_y[x] += a_y_i * b_i[x];
+				}
+			}
+		}
+	}
+
+	/// <summary>
 	/// Matrix multiplication with transposed b:
 	/// <code>r = mul(a, transpose(b))</code>
 	/// </summary>
@@ -77,7 +125,7 @@ public static class MMath
 			{
 				var b_x = b.GetRowSpan(x);
 
-				var r_y_x = 0.0f; // biases[x];
+				var r_y_x = 0.0f;
 
 				for (int i = 0; i < iMax; ++i)
 				{

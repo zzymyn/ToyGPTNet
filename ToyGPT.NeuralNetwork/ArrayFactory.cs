@@ -34,6 +34,11 @@ public static class ArrayFactory
 		return new T[input.GetLength(0)];
 	}
 
+	public static T[] NewFromArea<T>(T[,] input)
+	{
+		return new T[input.GetLength(0) * input.GetLength(1)];
+	}
+
 	public static float[,] NewLayerOutput(float[,] input, float[,] weights)
 	{
 		return new float[input.GetLength(0), weights.GetLength(0)];

@@ -9,7 +9,15 @@ namespace ToyGPT.NeuralNetwork.Layers;
 
 public static class LayerMultiheadCausalSelfAttention
 {
-	public static void Forward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> attnWT, ReadOnlySpan<float> attnB, ReadOnlySpan2D<float> projWT, ReadOnlySpan<float> projB, int headCount, Span2D<float> outputs, float nInf = -1e10f)
+	public static void Forward(
+		ReadOnlySpan2D<float> inputs,
+		ReadOnlySpan2D<float> attnWT,
+		ReadOnlySpan<float> attnB,
+		ReadOnlySpan2D<float> projWT,
+		ReadOnlySpan<float> projB,
+		int headCount,
+		Span2D<float> outputs,
+		float nInf = -1e10f)
 	{
 		Validate.ArraysSameSize(inputs, outputs);
 		Validate.True(inputs.Width == attnWT.Width);

@@ -253,6 +253,29 @@ public static class MMath
 		}
 	}
 
+	public static void Add(ReadOnlySpan2D<float> a, ReadOnlySpan2D<float> b, Span2D<float> r)
+	{
+		Validate.True(a.Height == b.Height);
+		Validate.True(a.Width == b.Width);
+		Validate.True(a.Height == r.Height);
+		Validate.True(a.Width == r.Width);
+
+		var yMax = a.Height;
+		var xMax = a.Width;
+
+		for (int y = 0; y < yMax; ++y)
+		{
+			var a_y = a.GetRowSpan(y);
+			var b_y = b.GetRowSpan(y);
+			var r_y = r.GetRowSpan(y);
+
+			for (int x = 0; x < xMax; ++x)
+			{
+				r_y[x] = a_y[x] + b_y[x];
+			}
+		}
+	}
+
 	public static void Add(ReadOnlySpan<float> a, ReadOnlySpan<float> b, Span<float> r)
 	{
 		Validate.True(a.Length == b.Length);

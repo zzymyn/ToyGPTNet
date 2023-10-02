@@ -28,19 +28,16 @@ internal class BackPropagationTests
 		};
 		var biases = new float[] { 2, 3, 0.5f };
 
-		var layerOutput = ArrayFactory.NewLayerOutput(inputs, weights);
-		LayerDense.ForwardMT(inputs, weights, biases, layerOutput);
+		var layer = new LinearWeightsTransposedWithBias(weights, biases);
+		var relu = new ActivationReLUInstance();
 
-		var reluOutput = ArrayFactory.NewSameSize(layerOutput);
-		ActivationReLU.Forward(layerOutput, reluOutput);
+		var layerOutput = layer.Forward(inputs);
+		var reluOutput = relu.Forward(layerOutput.Span);
+		var dRelu = relu.Backward(layerOutput.Span, reluOutput.Span);
+		layer.Backward(inputs, dRelu.Span);
 
-		var dRelu = ArrayFactory.NewSameSize(reluOutput);
-		ActivationReLU.Backward(layerOutput, reluOutput, dRelu);
-
-		var dInputs = ArrayFactory.NewSameSize(inputs);
-		var dWeights = ArrayFactory.NewSameSize(weights);
-		var dBiases = ArrayFactory.NewSameSize(biases);
-		LayerDense.BackwardMT(inputs, weights, dRelu, dInputs, dWeights, dBiases);
+		var dWeights = layer.DWeights.Span;
+		var dBiases = layer.DBiases.Span;
 
 		{
 			var yMax = weights.GetLength(0);

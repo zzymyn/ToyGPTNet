@@ -22,24 +22,4 @@ public static class ActivationGeLU
 			MMath.GeLU(rowIn, rowOut);
 		}
 	}
-
-	public static void Backward(ReadOnlySpan2D<float> outputs, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs)
-	{
-		Validate.ArraysSameSize(outputs, dValues);
-		Validate.ArraysSameSize(outputs, dInputs);
-
-		var yMax = outputs.Height;
-		var xMax = outputs.Width;
-		for (var y = 0; y < yMax; ++y)
-		{
-			var rowIn = outputs.GetRowSpan(y);
-			var rowDVal = dValues.GetRowSpan(y);
-			var rowDIn = dInputs.GetRowSpan(y);
-
-			for (var x = 0; x < xMax; ++x)
-			{
-				rowDIn[x] = rowIn[x] <= 0 ? 0 : rowDVal[x];
-			}
-		}
-	}
 }

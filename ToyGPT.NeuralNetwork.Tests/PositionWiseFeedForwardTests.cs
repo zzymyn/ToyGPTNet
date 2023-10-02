@@ -64,8 +64,13 @@ public class PositionWiseFeedForwardTests
 			{ 2.006084522752147f, 15.988150303339298f, -12.001785801582908f, 2.006415508068647f, -11.316310243030065f, -13.241396287328454f, -8.752304013162789f, -1.3541975138529094f, -0.2790719940848029f, -6.066525215017684f, -11.497625481330436f, -2.0885033427492536f, },
 		};
 
-		var output = ArrayFactory.NewLayerOutput(inputs, projWT);
-		PositionWiseFeedForward.Forward(inputs, fcWT, fcB, projWT, projB, output);
+		var layer = new PositionWiseFeedForward(
+			new (fcWT, fcB),
+			new (projWT, projB)
+			);
+
+		var output = layer.Forward(inputs).ToArray();
+
 		Assert.That(output, Is.EqualTo(expected).Within(0.00001f));
 	}
 }

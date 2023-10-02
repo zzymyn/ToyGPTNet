@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -42,5 +43,21 @@ public static class ArrayFactory
 	public static float[,] NewLayerOutput(float[,] input, float[,] weights)
 	{
 		return new float[input.GetLength(0), weights.GetLength(0)];
+	}
+
+	public static void ResizeHeight([NotNull] ref float[,]? arr, int height, int width)
+	{
+		if (arr == null || arr.GetLength(0) != height)
+		{
+			arr = new float[height, width];
+		}
+	}
+
+	public static void Resize([NotNull] ref float[]? arr, int length)
+	{
+		if (arr == null || arr.Length != length)
+		{
+			arr = new float[length];
+		}
 	}
 }

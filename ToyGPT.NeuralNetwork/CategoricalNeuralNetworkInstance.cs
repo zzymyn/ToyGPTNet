@@ -20,7 +20,7 @@ public sealed class CategoricalNeuralNetworkInstance
 
 	private readonly float[][,] m_Weights;
 	private readonly float[][] m_Biases;
-	private readonly ILayerInstance[] m_Layers;
+	private readonly ILinear[] m_Layers;
 	private readonly IActivationInstance[] m_Activations;
 	private readonly IActivationLossInstance m_FinalActivationLoss;
 
@@ -52,7 +52,7 @@ public sealed class CategoricalNeuralNetworkInstance
 
 		m_Weights = new float[m_LayerCount][,];
 		m_Biases = new float[m_LayerCount][];
-		m_Layers = new ILayerInstance[m_LayerCount];
+		m_Layers = new ILinear[m_LayerCount];
 		m_Activations = new IActivationInstance[m_LayerCount];
 		m_FinalActivationLoss = new ActivationLossSoftMaxCategoricalCrossEntropyInstance(batchSize, m_OutputNodeCount);
 
@@ -63,10 +63,10 @@ public sealed class CategoricalNeuralNetworkInstance
 
 			m_Weights[i] = layers[i].Weight;
 			m_Biases[i] = layers[i].Biases;
-			m_Layers[i] = new LayerDenseInstance(batchSize, inputSize, outputSize, m_Weights[i], m_Biases[i]);
+			m_Layers[i] = new LinearWeightsTransposedWithBias(m_Weights[i], m_Biases[i]);
 			m_Activations[i] = (i == m_LayerCount - 1)
-				? new ActivationSoftMaxInstance(batchSize, outputSize)
-				: new ActivationReLUInstance(batchSize, outputSize);
+				? new ActivationSoftMaxInstance()
+				: new ActivationReLUInstance();
 		}
 	}
 

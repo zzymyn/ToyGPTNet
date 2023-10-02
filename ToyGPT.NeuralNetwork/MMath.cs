@@ -406,7 +406,7 @@ public static class MMath
 		}
 	}
 
-	public static void CausalSelfAttentionAndSoftmax(ReadOnlySpan<float> a, Span<float> r, int row, float scale, float nInf = -1e10f)
+	public static void CausalAttentionAndSoftmax(ReadOnlySpan<float> a, Span<float> r, int row, float scale, float nInf = -1e10f)
 	{
 		Validate.True(a.Length == r.Length);
 

@@ -22,9 +22,11 @@ internal class LayerDenseTests
 		var biases = new float[] { 2.0f, 3.0f, 0.5f };
 		var inputs = new float[,] { { 1.0f, 2.0f, 3.0f, 2.5f } };
 		var expected = new float[,] { { 4.8f, 1.21f, 2.385f } };
-		var output = ArrayFactory.NewLayerOutput(inputs, weights);
-		LayerDense.ForwardMT(inputs, weights, biases, output);
-		Assert.That(output, Is.EqualTo(expected).Within(0.00001f));
+
+		var layer = new LinearWeightsTransposedWithBias(weights, biases);
+
+		var output = layer.Forward(inputs);
+		Assert.That(output.ToArray(), Is.EqualTo(expected).Within(0.00001f));
 	}
 
 	[Test]
@@ -48,9 +50,10 @@ internal class LayerDenseTests
 			{ 1.41f, 1.051f, 0.026f },
 		};
 
-		var output = ArrayFactory.NewLayerOutput(inputs, weights);
-		LayerDense.ForwardMT(inputs, weights, biases, output);
-		Assert.That(output, Is.EqualTo(expected).Within(0.00001f));
+		var layer = new LinearWeightsTransposedWithBias(weights, biases);
+
+		var output = layer.Forward(inputs);
+		Assert.That(output.ToArray(), Is.EqualTo(expected).Within(0.00001f));
 	}
 
 	[Test]
@@ -73,11 +76,6 @@ internal class LayerDenseTests
 			{ 2, 2, 2 },
 			{ 3, 3, 3 },
 		};
-		
-		var dInputs = ArrayFactory.NewSameSize(inputs);
-		var dWeights = ArrayFactory.NewSameSize(weights);
-		var dBiases = ArrayFactory.NewSameSize(biases);
-
 		var expectedDInputs = new float[,] {
 			{ 0.44f, -0.38f, -0.07f, 1.37f },
 			{ 0.88f, -0.76f, -0.14f, 2.74f },
@@ -90,7 +88,14 @@ internal class LayerDenseTests
 			{ 0.5f, 20.1f, 10.9f, 4.1f, },
 		};
 		var expectedDBiases = new float[] { 6, 6, 6 };
-		LayerDense.BackwardMT(inputs, weights, dValues, dInputs, dWeights, dBiases);
+
+		var layer = new LinearWeightsTransposedWithBias(weights, biases);
+		layer.Forward(inputs);
+		layer.Backward(inputs, dValues);
+		var dInputs = layer.DInputs.ToArray();
+		var dWeights = layer.DWeights.ToArray();
+		var dBiases = layer.DBiases.ToArray();
+
 		Assert.That(dInputs, Is.EqualTo(expectedDInputs).Within(0.00001f));
 		Assert.That(dWeights, Is.EqualTo(expectedDWeights).Within(0.00001f));
 		Assert.That(dBiases, Is.EqualTo(expectedDBiases).Within(0.00001f));
@@ -114,11 +119,6 @@ internal class LayerDenseTests
 			{ 1, 0, 1 },
 			{ 2, 1, 0.5f },
 		};
-		
-		var dInputs = ArrayFactory.NewSameSize(inputs);
-		var dWeights = ArrayFactory.NewSameSize(weights);
-		var dBiases = ArrayFactory.NewSameSize(biases);
-
 		var expectedDInputs = new float[,] {
 			{ -0.06f, 0.53f, -0.33f, 1.87f, },
 			{ 0.77f, 0.555f, -0.655f, 1.935f, },
@@ -131,10 +131,15 @@ internal class LayerDenseTests
 		};
 		var expectedDBiases = new float[] { 3, 1, 1.5f };
 
-		LayerDense.BackwardMT(inputs, weights, dValues, dInputs, dWeights, dBiases);
+		var layer = new LinearWeightsTransposedWithBias(weights, biases);
+		layer.Forward(inputs);
+		layer.Backward(inputs, dValues);
+		var dInputs = layer.DInputs.ToArray();
+		var dWeights = layer.DWeights.ToArray();
+		var dBiases = layer.DBiases.ToArray();
+
 		Assert.That(dInputs, Is.EqualTo(expectedDInputs).Within(0.00001f));
 		Assert.That(dWeights, Is.EqualTo(expectedDWeights).Within(0.00001f));
 		Assert.That(dBiases, Is.EqualTo(expectedDBiases).Within(0.00001f));
 	}
-
 }

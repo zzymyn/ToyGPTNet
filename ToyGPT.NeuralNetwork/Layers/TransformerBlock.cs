@@ -7,8 +7,18 @@ using CommunityToolkit.HighPerformance;
 
 namespace ToyGPT.NeuralNetwork.Layers;
 
-public static class TransformerBlock
+public class TransformerBlock
 {
+	public TransformerBlock(
+		LayerNormalization mhaLn,
+		LinearWeightsTransposedWithBias mhaUp,
+		LayerMultiheadCausalSelfAttention mha,
+		LinearWeightsTransposedWithBias mhaDown,
+		LayerNormalization ffnLn,
+		PositionWiseFeedForward ffn)
+	{
+	}
+
 	public static void Forward(
 		ReadOnlySpan2D<float> inputs,
 		ReadOnlySpan2D<float> mhaUpWT,

@@ -2,7 +2,7 @@ using CommunityToolkit.HighPerformance;
 
 namespace ToyGPT.NeuralNetwork.Layers;
 
-public interface IForwardLayerInstance
+public interface ILinearForward
 {
 	ReadOnlyMemory2D<float> Outputs { get; }
 

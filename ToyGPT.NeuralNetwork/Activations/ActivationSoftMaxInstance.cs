@@ -12,22 +12,23 @@ public sealed class ActivationSoftMaxInstance
 	: IActivationInstance
 	, INeuralNetworkStep
 {
-	private readonly int m_BatchSize;
-	private readonly float[,] m_Outputs;
-	private readonly float[,] m_DInputs;
+	private float[,]? m_Outputs;
+	private float[,]? m_DInputs;
 
 	public ReadOnlyMemory2D<float> Outputs => m_Outputs;
+	public ReadOnlyMemory2D<float> DInputs => m_DInputs;
 
-	public ActivationSoftMaxInstance(int batchSize, int inputSize)
+	public ActivationSoftMaxInstance()
 	{
-		m_BatchSize = batchSize;
-		m_Outputs = new float[batchSize, inputSize];
-		m_DInputs = new float[batchSize, inputSize];
 	}
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
+		ArrayFactory.ResizeHeight(ref m_Outputs, inputs.Height, inputs.Width);
+		ArrayFactory.ResizeHeight(ref m_DInputs, inputs.Height, inputs.Width);
+
 		ActivationSoftMax.Forward(inputs, m_Outputs);
+
 		return m_Outputs;
 	}
 

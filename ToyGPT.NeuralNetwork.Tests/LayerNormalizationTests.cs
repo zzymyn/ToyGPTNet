@@ -34,8 +34,8 @@ public class LayerNormalizationTests
 			{ -0.3622866204049513f, -0.8753240552110982f, -0.47068306996545956f, 0.11678997881505183f, -1.0077317362722011f, -0.3972018247416228f, -1.9247876884982154f, 1.8140713612272577f, 0.28973753045084427f, -2.344217037583989f, 2.9510696954652382f, -4.341773304114317f, },
 		};
 
-		var output = ArrayFactory.NewSameSize(inputs);
-		LayerNormalization.Forward(inputs, lnG, lnB, output);
+		var layer = new LayerNormalization(lnG, lnB);
+		var output = layer.Forward(inputs).ToArray();
 		Assert.That(output, Is.EqualTo(expected).Within(0.00001f));
 	}
 }

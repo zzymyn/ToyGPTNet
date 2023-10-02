@@ -9,31 +9,22 @@ using ToyGPT.NeuralNetwork.Steps;
 namespace ToyGPT.NeuralNetwork.Activations;
 
 public sealed class ActivationGeLUInstance
-	: IActivationInstance
-	, INeuralNetworkStep
+	: INeuralNetworkForwardStep
 {
-	private readonly int m_BatchSize;
-	private readonly float[,] m_Outputs;
-	private readonly float[,] m_DInputs;
+	private float[,]? m_Outputs;
 
 	public ReadOnlyMemory2D<float> Outputs => m_Outputs;
 
-	public ActivationGeLUInstance(int batchSize, int inputSize)
+	public ActivationGeLUInstance()
 	{
-		m_BatchSize = batchSize;
-		m_Outputs = new float[batchSize, inputSize];
-		m_DInputs = new float[batchSize, inputSize];
 	}
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
-		ActivationGeLU.Forward(inputs, m_Outputs);
-		return m_Outputs;
-	}
+		ArrayFactory.ResizeHeight(ref m_Outputs, inputs.Height, inputs.Width);
 
-	public ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues)
-	{
-		ActivationGeLU.Backward(m_Outputs, dValues, m_DInputs);
-		return m_DInputs;
+		ActivationGeLU.Forward(inputs, m_Outputs);
+
+		return m_Outputs;
 	}
 }

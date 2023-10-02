@@ -9,7 +9,7 @@ using ToyGPT.NeuralNetwork.Layers;
 namespace ToyGPT.NeuralNetwork.Layers;
 
 public static class LayerCausalSelfAttention
-{
+{ 
 	public static void Forward(ReadOnlySpan2D<float> q, ReadOnlySpan2D<float> k, ReadOnlySpan2D<float> v, Span2D<float> r, Span<float> scratch = default, float nInf = -1e10f)
 	{
 		Span2D<float> tmp;
@@ -27,7 +27,7 @@ public static class LayerCausalSelfAttention
 			throw new ArgumentException("scratch is too small");
 		}
 
-		LayerDense.ForwardMT(q, k, tmp);
+		MMath.MulMT(q, k, tmp);
 
 		{
 			var yMax = tmp.Height;
@@ -37,10 +37,10 @@ public static class LayerCausalSelfAttention
 			for (var y = 0; y < yMax; ++y)
 			{
 				var row = tmp.GetRowSpan(y);
-				MMath.CausalSelfAttentionAndSoftmax(row, row, y, scale, nInf: nInf);
+				MMath.CausalAttentionAndSoftmax(row, row, y, scale, nInf: nInf);
 			}
 		}
 
-		LayerDense.ForwardMM(tmp, v, r);
+		MMath.MulMM(tmp, v, r);
 	}
 }

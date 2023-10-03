@@ -18,8 +18,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToyGPT.NeuralNetwork.Tests"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToyGPT.NeuralNetwork.UI", "ToyGPTNet.NeuralNetwork.UI\ToyGPT.NeuralNetwork.UI.csproj", "{B2E88C46-61F9-41B3-861C-57ED86AAC2A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToyGPT.ModelConverter", "ToyGPTNet.ModelConverter\ToyGPT.ModelConverter.csproj", "{2057552D-F0D2-4CA1-B5C7-8BE1EF2487C2}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,10 +44,6 @@ Global
 		{B2E88C46-61F9-41B3-861C-57ED86AAC2A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2E88C46-61F9-41B3-861C-57ED86AAC2A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2E88C46-61F9-41B3-861C-57ED86AAC2A4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2057552D-F0D2-4CA1-B5C7-8BE1EF2487C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2057552D-F0D2-4CA1-B5C7-8BE1EF2487C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2057552D-F0D2-4CA1-B5C7-8BE1EF2487C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2057552D-F0D2-4CA1-B5C7-8BE1EF2487C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

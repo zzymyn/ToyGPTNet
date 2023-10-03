@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
 using CommunityToolkit.HighPerformance;
@@ -112,9 +115,11 @@ public static class MMath
 		Validate.True(a.Width == b.Width);
 		Validate.True(b.Height == r.Width);
 
+		var vecSize = Vector<float>.Count;
 		var yMax = r.Height;
 		var xMax = r.Width;
 		var iMax = b.Width;
+		var iVMax = iMax - (iMax % vecSize);
 
 		for (int y = 0; y < yMax; ++y)
 		{
@@ -127,7 +132,16 @@ public static class MMath
 
 				var r_y_x = 0.0f;
 
-				for (int i = 0; i < iMax; ++i)
+				int i = 0;
+
+				for (; i < iVMax; i += vecSize)
+				{
+					var a_y_vec = new Vector<float>(a_y[i..]);
+					var b_x_vec = new Vector<float>(b_x[i..]);
+					r_y_x += Vector.Dot(a_y_vec, b_x_vec);
+				}
+
+				for (; i < iMax; ++i)
 				{
 					r_y_x += a_y[i] * b_x[i];
 				}
@@ -147,9 +161,11 @@ public static class MMath
 		Validate.True(b.Height == r.Width);
 		Validate.True(r.Width == c.Length);
 
+		var vecSize = Vector<float>.Count;
 		var yMax = r.Height;
 		var xMax = r.Width;
 		var iMax = b.Width;
+		var iVMax = iMax - (iMax % vecSize);
 
 		for (int y = 0; y < yMax; ++y)
 		{
@@ -162,7 +178,16 @@ public static class MMath
 
 				var r_y_x = c[x];
 
-				for (int i = 0; i < iMax; ++i)
+				int i = 0;
+
+				for (; i < iVMax; i += vecSize)
+				{
+					var a_y_vec = new Vector<float>(a_y[i..]);
+					var b_x_vec = new Vector<float>(b_x[i..]);
+					r_y_x += Vector.Dot(a_y_vec, b_x_vec);
+				}
+
+				for (; i < iMax; ++i)
 				{
 					r_y_x += a_y[i] * b_x[i];
 				}

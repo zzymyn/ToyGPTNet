@@ -38,12 +38,11 @@ class Program
 
 	private static void Run(DirectoryInfo modelDir, CancellationToken ct)
 	{
-		Console.WriteLine("Loading model...");
+		Console.WriteLine("Loading...");
 		var hParams = HParams.ReadJson(Path.Join(modelDir.FullName, "hparams.json"));
 		var model = SavedData.ReadBinary(Path.Join(modelDir.FullName, "model.bin"));
 		var encoder = LoadEncoder(modelDir);
 
-		Console.WriteLine("Building model...");
 		var wte = model.LoadMatrix("model/wte");
 		var wpe = model.LoadMatrix("model/wpe");
 		var ln_f_b = model.LoadArray($"model/ln_f/b");

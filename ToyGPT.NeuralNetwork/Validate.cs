@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
@@ -12,6 +13,7 @@ namespace ToyGPT.NeuralNetwork;
 
 internal static class Validate
 {
+	[Conditional("DEBUG")]
 	public static void True(bool condition, [CallerArgumentExpression(nameof(condition))] string? message = null)
 	{
 		if (!condition)
@@ -27,6 +29,7 @@ internal static class Validate
 		}
 	}
 
+	[Conditional("DEBUG")]
 	public static void NotNull([NotNull] object? a, [CallerArgumentExpression(nameof(a))] string? message = null)
 	{
 		if (a is null)
@@ -42,12 +45,14 @@ internal static class Validate
 		}
 	}
 
+	[Conditional("DEBUG")]
 	public static void ArraysSameSize<T>(ReadOnlySpan<T> a, ReadOnlySpan<T> b)
 	{
 		if (a.Length != b.Length)
 			throw new ArgumentException($"Arrays aren't the same size: {a.Length} != {b.Length}.");
 	}
 
+	[Conditional("DEBUG")]
 	public static void ArraysSameSize<T>(ReadOnlySpan2D<T> a, ReadOnlySpan2D<T> b)
 	{
 		if (a.Height != b.Height || a.Width != b.Width)
@@ -56,6 +61,7 @@ internal static class Validate
 		}
 	}
 
+	[Conditional("DEBUG")]
 	public static void ArraySize<T>(Span2D<T> a, int height, int width)
 	{
 		if (a.Width != width || a.Height != height)
@@ -64,6 +70,7 @@ internal static class Validate
 		}
 	}
 
+	[Conditional("DEBUG")]
 	public static void ArraySize<T>(ReadOnlySpan2D<T> a, int height, int width)
 	{
 		if (a.Width != width || a.Height != height)
@@ -72,6 +79,7 @@ internal static class Validate
 		}
 	}
 
+	[Conditional("DEBUG")]
 	public static void ArraySize<T>(Span<T> a, int length)
 	{
 		if (a.Length != length)
@@ -80,6 +88,7 @@ internal static class Validate
 		}
 	}
 
+	[Conditional("DEBUG")]
 	public static void ArraySize<T>(ReadOnlySpan<T> a, int length)
 	{
 		if (a.Length != length)
@@ -88,12 +97,14 @@ internal static class Validate
 		}
 	}
 
+	[Conditional("DEBUG")]
 	public static void ArraysSameSize<T>(ReadOnlyMemory<T> a, ReadOnlyMemory<T> b)
 	{
 		if (a.Length != b.Length)
 			throw new ArgumentException($"Arrays aren't the same size: {a.Length} != {b.Length}.");
 	}
 
+	[Conditional("DEBUG")]
 	public static void ArraysSameSize<T>(ReadOnlyMemory2D<T> a, ReadOnlyMemory2D<T> b)
 	{
 		if (a.Height != b.Height || a.Width != b.Width)
@@ -102,6 +113,7 @@ internal static class Validate
 		}
 	}
 
+	[Conditional("DEBUG")]
 	public static void ArraySize<T>(Memory2D<T> a, int height, int width)
 	{
 		if (a.Width != width || a.Height != height)
@@ -110,6 +122,7 @@ internal static class Validate
 		}
 	}
 
+	[Conditional("DEBUG")]
 	public static void ArraySize<T>(ReadOnlyMemory2D<T> a, int height, int width)
 	{
 		if (a.Width != width || a.Height != height)
@@ -118,6 +131,7 @@ internal static class Validate
 		}
 	}
 
+	[Conditional("DEBUG")]
 	public static void ArraySize<T>(Memory<T> a, int length)
 	{
 		if (a.Length != length)
@@ -126,6 +140,7 @@ internal static class Validate
 		}
 	}
 
+	[Conditional("DEBUG")]
 	public static void ArraySize<T>(ReadOnlyMemory<T> a, int length)
 	{
 		if (a.Length != length)

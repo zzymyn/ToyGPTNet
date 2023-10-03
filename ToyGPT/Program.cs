@@ -44,7 +44,7 @@ class Program
 		var model = SavedData.ReadBinary(Path.Join(modelDir.FullName, "model.bin"));
 		var encoder = LoadEncoder(modelDir);
 
-		var random = new Random(42);
+		var random = new Random();
 
 		var wte = model.LoadMatrix("model/wte");
 		var wpe = model.LoadMatrix("model/wpe");

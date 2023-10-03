@@ -1,7 +1,9 @@
 {
   "profiles": {
     "ToyGPT": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "--model-dir Data/124M",
+      "workingDirectory": "$(SolutionDir)"
     }
   }
 }

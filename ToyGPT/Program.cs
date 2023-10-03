@@ -84,6 +84,12 @@ class Program
 			Console.Write("Prompt: ");
 			var text = Console.ReadLine();
 
+			if (text == null)
+				break;
+
+			text = text.TrimEnd();
+
+			Console.Write(text);
 			var tokens = encoder.Encode(text);
 
 			while (tokens.Count < hParams.n_ctx)

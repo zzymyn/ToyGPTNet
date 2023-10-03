@@ -26,7 +26,7 @@ public sealed class MultiheadCausalSelfAttention
 
 	public ReadOnlyMemory2D<float> Outputs => m_Down.Outputs;
 
-	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
+	public ReadOnlyMemory2D<float> Forward(ReadOnlyMemory2D<float> inputs)
 	{
 		var projection = m_Up.Forward(inputs);
 
@@ -36,8 +36,8 @@ public sealed class MultiheadCausalSelfAttention
 		var ks = projection[.., qvkStep..(qvkStep * 2)];
 		var vs = projection[.., (qvkStep * 2)..];
 
-		var attnOut = m_Attn.Forward(qs.Span, ks.Span, vs.Span);
+		var attnOut = m_Attn.Forward(qs, ks, vs);
 
-		return m_Down.Forward(attnOut.Span);
+		return m_Down.Forward(attnOut);
 	}
 }

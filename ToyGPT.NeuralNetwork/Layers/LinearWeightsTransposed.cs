@@ -23,13 +23,13 @@ public sealed class LinearWeightsTransposed
 		m_WeightsT = weightsT;
 	}
 
-	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
+	public ReadOnlyMemory2D<float> Forward(ReadOnlyMemory2D<float> inputs)
 	{
 		ArrayFactory.Resize(ref m_Outputs, inputs.Height, m_WeightsT.Height);
 		ArrayFactory.Resize(ref m_DInputs, inputs.Height, m_WeightsT.Width);
 		ArrayFactory.Resize(ref m_DWeightsT, m_WeightsT.Height, m_WeightsT.Width);
 
-		MMath.MulMT(inputs, m_WeightsT.Span, m_Outputs);
+		MMath.MulMT(inputs, m_WeightsT, m_Outputs);
 
 		return m_Outputs;
 	}

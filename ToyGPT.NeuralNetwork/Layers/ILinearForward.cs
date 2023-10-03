@@ -6,5 +6,5 @@ public interface ILinearForward
 {
 	ReadOnlyMemory2D<float> Outputs { get; }
 
-	ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs);
+	ReadOnlyMemory2D<float> Forward(ReadOnlyMemory2D<float> inputs);
 }

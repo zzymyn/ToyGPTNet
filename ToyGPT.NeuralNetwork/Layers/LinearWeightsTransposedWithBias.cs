@@ -30,34 +30,34 @@ public sealed class LinearWeightsTransposedWithBias
 		m_Biases = biases;
 	}
 
-	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
+	public ReadOnlyMemory2D<float> Forward(ReadOnlyMemory2D<float> inputs)
 	{
 		ArrayFactory.Resize(ref m_Outputs, inputs.Height, m_WeightsT.Height);
 		ArrayFactory.Resize(ref m_DInputs, inputs.Height, m_WeightsT.Width);
 		ArrayFactory.Resize(ref m_DWeightsT, m_WeightsT.Height, m_WeightsT.Width);
 		ArrayFactory.Resize(ref m_DBiases, m_Biases.Length);
 
-		MMath.MulMTAddR(inputs, m_WeightsT.Span, m_Biases.Span, m_Outputs);
+		MMath.MulMTAddR(inputs, m_WeightsT, m_Biases, m_Outputs);
 
 		return m_Outputs;
 	}
 
-	public ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues)
+	public ReadOnlyMemory2D<float> Backward(ReadOnlyMemory2D<float> inputs, ReadOnlyMemory2D<float> dValues)
 	{
 		// calculate dInputs:
 		// dInputs = mul(dValues, transpose(weights));
 		//         = mul(dValues, weightsT);
-		MMath.MulMM(dValues, m_WeightsT.Span, m_DInputs);
+		MMath.MulMM(dValues.Span, m_WeightsT.Span, m_DInputs);
 
 		// calculate dWeightsT:
 		// dWeights  = mul(dValues, transpose(inputs))
 		// dWeightsT = transpose(mul(dValues, transpose(inputs)))
 		//           = mul(transpose(dValues), inputs)
-		MMath.MulTM(dValues, inputs, m_DWeightsT);
+		MMath.MulTM(dValues.Span, inputs.Span, m_DWeightsT);
 
 		// calculate dBiases:
 		// dBiases = sum-vertical(dValues)
-		MMath.SumColumns(dValues, m_DBiases);
+		MMath.SumColumns(dValues.Span, m_DBiases);
 
 		return m_DInputs;
 	}

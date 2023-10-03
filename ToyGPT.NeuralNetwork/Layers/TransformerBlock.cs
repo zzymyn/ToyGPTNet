@@ -34,10 +34,10 @@ public class TransformerBlock
 		ArrayFactory.Resize(ref m_Outputs, inputs.Height, inputs.Width);
 
 		var mhaLnOut = m_MhaLn.Forward(inputs);
-		var mhaOut = m_Mha.Forward(mhaLnOut.Span);
+		var mhaOut = m_Mha.Forward(mhaLnOut);
 		var mhaAddOut = m_MhaAdd.Forward(inputs, mhaOut.Span);
 		var ffnLnOut = m_FfnLn.Forward(mhaAddOut.Span);
-		var ffnOut = m_Ffn.Forward(ffnLnOut.Span);
+		var ffnOut = m_Ffn.Forward(ffnLnOut);
 		return m_FfnAdd.Forward(mhaAddOut.Span, ffnOut.Span);
 	}
 }

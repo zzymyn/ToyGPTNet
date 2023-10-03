@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,9 +14,12 @@ namespace ToyGPT.NeuralNetwork;
 
 public static class MMath
 {
+	private static int VecSize = Vector<float>.Count;
+
 	/// <summary>
 	/// Matrix multiplication:
 	/// <code>r = mul(a, b)</code>
+	/// Slow, try to use MulMT* instead.
 	/// </summary>
 	/// <param name="a"></param>
 	/// <param name="b"></param>
@@ -55,6 +59,7 @@ public static class MMath
 	/// <summary>
 	/// Matrix multiplication:
 	/// <code>r = mul(a, b) + c</code>
+	/// Slow, try to use MulMT* instead.
 	/// </summary>
 	/// <param name="a"></param>
 	/// <param name="b"></param>
@@ -103,98 +108,107 @@ public static class MMath
 	/// <summary>
 	/// Matrix multiplication with transposed b:
 	/// <code>r = mul(a, transpose(b))</code>
+	/// Significantly faster matrix multiplication than MulMM*.
 	/// </summary>
 	/// <param name="a"></param>
 	/// <param name="b"></param>
 	/// <param name="r"></param>
-	public static void MulMT(ReadOnlySpan2D<float> a, ReadOnlySpan2D<float> b, Span2D<float> r)
+	public static void MulMT(ReadOnlyMemory2D<float> a, ReadOnlyMemory2D<float> b, Memory2D<float> r)
 	{
-		Validate.True(r != a);
-		Validate.True(r != b);
 		Validate.True(a.Height == r.Height);
 		Validate.True(a.Width == b.Width);
 		Validate.True(b.Height == r.Width);
 
-		var vecSize = Vector<float>.Count;
 		var yMax = r.Height;
 		var xMax = r.Width;
 		var iMax = b.Width;
-		var iVMax = iMax - (iMax % vecSize);
+		var iVMax = iMax - (iMax % VecSize);
 
-		for (int y = 0; y < yMax; ++y)
+		Parallel.ForEach(Partitioner.Create(0, yMax), yRange =>
 		{
-			var a_y = a.GetRowSpan(y);
-			var r_y = r.GetRowSpan(y);
-
-			for (int x = 0; x < xMax; ++x)
+			for (var y = yRange.Item1; y < yRange.Item2; ++y)
 			{
-				var b_x = b.GetRowSpan(x);
+				var a_y = a.Span.GetRowSpan(y);
+				var r_y = r.Span.GetRowSpan(y);
 
-				var r_y_x = 0.0f;
-
-				int i = 0;
-
-				for (; i < iVMax; i += vecSize)
+				for (int x = 0; x < xMax; ++x)
 				{
-					var a_y_vec = new Vector<float>(a_y[i..]);
-					var b_x_vec = new Vector<float>(b_x[i..]);
-					r_y_x += Vector.Dot(a_y_vec, b_x_vec);
-				}
+					var b_x = b.Span.GetRowSpan(x);
 
-				for (; i < iMax; ++i)
-				{
-					r_y_x += a_y[i] * b_x[i];
-				}
+					var r_y_x = 0.0f;
 
-				r_y[x] = r_y_x;
+					int i = 0;
+
+					for (; i < iVMax; i += VecSize)
+					{
+						var a_y_vec = new Vector<float>(a_y[i..]);
+						var b_x_vec = new Vector<float>(b_x[i..]);
+						r_y_x += Vector.Dot(a_y_vec, b_x_vec);
+					}
+
+					for (; i < iMax; ++i)
+					{
+						r_y_x += a_y[i] * b_x[i];
+					}
+
+					r_y[x] = r_y_x;
+				}
 			}
-		}
+		});
 	}
 
-	// r = mul(a, transpose(b)) + c
-	public static void MulMTAddR(ReadOnlySpan2D<float> a, ReadOnlySpan2D<float> b, ReadOnlySpan<float> c, Span2D<float> r)
+	/// <summary>
+	/// Matrix multiplication with transposed b and adding c:
+	/// <code>r = mul(a, transpose(b)) + c</code>
+	/// Significantly faster matrix multiplication than MulMM*.
+	/// </summary>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	/// <param name="c"></param>
+	/// <param name="r"></param>
+	public static void MulMTAddR(ReadOnlyMemory2D<float> a, ReadOnlyMemory2D<float> b, ReadOnlyMemory<float> c, Memory2D<float> r)
 	{
-		Validate.True(r != a);
-		Validate.True(r != b);
 		Validate.True(a.Height == r.Height);
 		Validate.True(a.Width == b.Width);
 		Validate.True(b.Height == r.Width);
 		Validate.True(r.Width == c.Length);
 
-		var vecSize = Vector<float>.Count;
 		var yMax = r.Height;
 		var xMax = r.Width;
 		var iMax = b.Width;
-		var iVMax = iMax - (iMax % vecSize);
+		var iVMax = iMax - (iMax % VecSize);
 
-		for (int y = 0; y < yMax; ++y)
+		Parallel.ForEach(Partitioner.Create(0, yMax), yRange =>
 		{
-			var a_y = a.GetRowSpan(y);
-			var r_y = r.GetRowSpan(y);
-
-			for (int x = 0; x < xMax; ++x)
+			for (var y = yRange.Item1; y < yRange.Item2; ++y)
 			{
-				var b_x = b.GetRowSpan(x);
+				var a_y = a.Span.GetRowSpan(y);
+				var r_y = r.Span.GetRowSpan(y);
 
-				var r_y_x = c[x];
-
-				int i = 0;
-
-				for (; i < iVMax; i += vecSize)
+				for (int x = 0; x < xMax; ++x)
 				{
-					var a_y_vec = new Vector<float>(a_y[i..]);
-					var b_x_vec = new Vector<float>(b_x[i..]);
-					r_y_x += Vector.Dot(a_y_vec, b_x_vec);
-				}
+					var b_x = b.Span.GetRowSpan(x);
 
-				for (; i < iMax; ++i)
-				{
-					r_y_x += a_y[i] * b_x[i];
-				}
+					var r_y_x = c.Span[x];
 
-				r_y[x] = r_y_x;
+					int i = 0;
+
+					for (; i < iVMax; i += VecSize)
+					{
+						var a_y_vec = new Vector<float>(a_y[i..]);
+						var b_x_vec = new Vector<float>(b_x[i..]);
+						r_y_x += Vector.Dot(a_y_vec, b_x_vec);
+					}
+
+					for (; i < iMax; ++i)
+					{
+						r_y_x += a_y[i] * b_x[i];
+					}
+
+					r_y[x] = r_y_x;
+				}
 			}
-		}
+		});
 	}
 
 	// r = a + b

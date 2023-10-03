@@ -78,7 +78,7 @@ public sealed class CategoricalNeuralNetworkInstance
 		return new CategoricalNeuralNetworkInstance(batchSize, wbs);
 	}
 
-	public ReadOnlyMemory2D<float> Run(ReadOnlySpan2D<float> inputs)
+	public ReadOnlyMemory2D<float> Run(ReadOnlyMemory2D<float> inputs)
 	{
 		Validate.ArraySize(inputs, m_BatchSize, m_InputNodeCount);
 
@@ -87,7 +87,7 @@ public sealed class CategoricalNeuralNetworkInstance
 		for (int i = 0; i < m_LayerCount - 1; ++i)
 		{
 			a = m_Activations[i].Forward(a.Span);
-			a = m_Layers[i + 1].Forward(a.Span);
+			a = m_Layers[i + 1].Forward(a);
 		}
 
 		a = m_Activations[^1].Forward(a.Span);
@@ -95,7 +95,7 @@ public sealed class CategoricalNeuralNetworkInstance
 		return a;
 	}
 
-	public void Train(ReadOnlySpan2D<float> inputs, ReadOnlySpan<int> expected, float learningRate, out float avgLoss, out float accuracy)
+	public void Train(ReadOnlyMemory2D<float> inputs, ReadOnlySpan<int> expected, float learningRate, out float avgLoss, out float accuracy)
 	{
 		Validate.ArraySize(inputs, m_BatchSize, m_InputNodeCount);
 		Validate.ArraySize(expected, inputs.Height);
@@ -105,7 +105,7 @@ public sealed class CategoricalNeuralNetworkInstance
 		for (int i = 0; i < m_LayerCount - 1; ++i)
 		{
 			a = m_Activations[i].Forward(a.Span);
-			a = m_Layers[i + 1].Forward(a.Span);
+			a = m_Layers[i + 1].Forward(a);
 		}
 
 		var loss = m_FinalActivationLoss.Forward(a.Span, expected);
@@ -114,11 +114,11 @@ public sealed class CategoricalNeuralNetworkInstance
 
 		for (int i = m_LayerCount - 1; i >= 1; --i)
 		{
-			b = m_Layers[i].Backward(m_Activations[i - 1].Outputs.Span, b.Span);
+			b = m_Layers[i].Backward(m_Activations[i - 1].Outputs, b);
 			b = m_Activations[i - 1].Backward(m_Layers[i - 1].Outputs.Span, b.Span);
 		}
 
-		m_Layers[0].Backward(inputs, b.Span);
+		m_Layers[0].Backward(inputs, b);
 
 		{
 			avgLoss = 0.0f;

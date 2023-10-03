@@ -23,10 +23,10 @@ public sealed class PositionWiseFeedForward
 		m_Down = proj;
 	}
 
-	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
+	public ReadOnlyMemory2D<float> Forward(ReadOnlyMemory2D<float> inputs)
 	{
 		var fcOut = m_Up.Forward(inputs);
 		var actOut = m_Activation.Forward(fcOut.Span);
-		return m_Down.Forward(actOut.Span);
+		return m_Down.Forward(actOut);
 	}
 }

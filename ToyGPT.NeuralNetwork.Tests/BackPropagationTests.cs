@@ -34,7 +34,7 @@ internal class BackPropagationTests
 		var layerOutput = layer.Forward(inputs);
 		var reluOutput = relu.Forward(layerOutput.Span);
 		var dRelu = relu.Backward(layerOutput.Span, reluOutput.Span);
-		layer.Backward(inputs, dRelu.Span);
+		layer.Backward(inputs, dRelu);
 
 		var dWeights = layer.DWeights.Span;
 		var dBiases = layer.DBiases.Span;

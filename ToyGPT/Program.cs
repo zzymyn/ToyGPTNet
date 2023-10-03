@@ -10,6 +10,7 @@ using ToyGPT.NeuralNetwork.Encoders;
 using System.Text.Json.Nodes;
 using ToyGPT.NeuralNetwork.Layers;
 using System.Runtime.InteropServices;
+using ToyGPT.NeuralNetwork.Activations;
 
 namespace ToyGPT;
 
@@ -42,6 +43,8 @@ class Program
 		var hParams = HParams.ReadJson(Path.Join(modelDir.FullName, "hparams.json"));
 		var model = SavedData.ReadBinary(Path.Join(modelDir.FullName, "model.bin"));
 		var encoder = LoadEncoder(modelDir);
+
+		var random = new Random(42);
 
 		var wte = model.LoadMatrix("model/wte");
 		var wpe = model.LoadMatrix("model/wpe");
@@ -102,22 +105,17 @@ class Program
 					x = layer.Forward(x.Span);
 				}
 				x = layerNorm.Forward(x.Span);
-				x = finalOutput.Forward(x.Span);
+				x = finalOutput.Forward(x);
 
 				// greedy sampling:
 				var lastRow = x.Span.GetRowSpan(x.Height - 1);
 
-				var bestScore = float.MinValue;
-				var bestToken = -1;
+				var options = lastRow.ToArray()
+					.Select((a, i) => (a, i))
+					.OrderByDescending(a => a.a)
+					.Take(3).ToList();
 
-				for (var i = 0; i < lastRow.Length; ++i)
-				{
-					if (lastRow[i] > bestScore)
-					{
-						bestScore = lastRow[i];
-						bestToken = i;
-					}
-				}
+				var bestToken = options[random.Next(options.Count)].i;
 
 				if (bestToken >= hParams.n_vocab - 1)
 				{

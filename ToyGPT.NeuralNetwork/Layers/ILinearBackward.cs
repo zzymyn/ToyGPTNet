@@ -7,5 +7,5 @@ public interface ILinearBackward
 	ReadOnlyMemory2D<float> DWeights { get; }
 	ReadOnlyMemory<float> DBiases { get; }
 
-	ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues);
+	ReadOnlyMemory2D<float> Backward(ReadOnlyMemory2D<float> inputs, ReadOnlyMemory2D<float> dValues);
 }

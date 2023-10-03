@@ -39,12 +39,12 @@ public sealed class LinearWithBias
 		return m_Outputs;
 	}
 
-	public ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues)
+	public ReadOnlyMemory2D<float> Backward(ReadOnlyMemory2D<float> inputs, ReadOnlyMemory2D<float> dValues)
 	{
 		// calculate dInputs:
 		// dInputs = mul(dValues, transpose(weights));
 		//         = mul(dValues, weightsT);
-		MMath.MulMT(dValues, m_Weights.Span, m_DInputs);
+		MMath.MulMT(dValues, m_Weights, m_DInputs);
 
 		// calculate dWeightsT:
 		// dWeights  = mul(dValues, transpose(inputs))
@@ -54,7 +54,7 @@ public sealed class LinearWithBias
 
 		// calculate dBiases:
 		// dBiases = sum-vertical(dValues)
-		MMath.SumColumns(dValues, m_DBiases);
+		MMath.SumColumns(dValues.Span, m_DBiases);
 
 		return m_DInputs;
 	}

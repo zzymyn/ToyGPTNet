@@ -19,14 +19,14 @@ public sealed class MultiheadCausalAttention
 
 	public ReadOnlyMemory2D<float> Outputs => m_Outputs;
 
-	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> qs, ReadOnlySpan2D<float> ks, ReadOnlySpan2D<float> vs)
+	public ReadOnlyMemory2D<float> Forward(ReadOnlyMemory2D<float> qs, ReadOnlyMemory2D<float> ks, ReadOnlyMemory2D<float> vs)
 	{
 		ArrayFactory.Resize(ref m_Outputs, qs.Height, qs.Width);
 
 		var headStep = qs.Width / m_HeadCount;
 		var h0 = 0;
 		var csaScale = 1.0f / MathF.Sqrt(headStep);
-		var tmp = new float[qs.Height, qs.Height].AsSpan2D();
+		var tmp = new float[qs.Height, qs.Height];
 
 		for (int head = 0; head < m_HeadCount; ++head)
 		{
@@ -39,13 +39,13 @@ public sealed class MultiheadCausalAttention
 
 			MMath.MulMT(q, k, tmp);
 
-			for (int y = 0, yMax = tmp.Height; y < yMax; ++y)
+			for (int y = 0, yMax = qs.Height; y < yMax; ++y)
 			{
 				var row = tmp.GetRowSpan(y);
 				MMath.CausalAttentionAndSoftmax(row, row, y, csaScale);
 			}
 
-			MMath.MulMM(tmp, v, attn);
+			MMath.MulMM(tmp, v.Span, attn);
 
 			h0 = h1;
 		}

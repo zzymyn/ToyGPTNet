@@ -57,6 +57,10 @@ namespace ToyGPT.Lib.Model
 		public ReadOnlyMemory<float> LoadArray(string variableName)
 		{
 			var entry = m_Entries[variableName];
+
+			if (entry.DataType != 1)
+				throw new Exception("Not a float array");
+
 			using var br = new BinaryReader(File.OpenRead($"{m_BaseFileName}.data-00000-of-00001"));
 			br.BaseStream.Seek((long)entry.DataOffset, SeekOrigin.Begin);
 			var data = br.ReadBytes((int)entry.DataSize);
@@ -68,6 +72,10 @@ namespace ToyGPT.Lib.Model
 		public ReadOnlyMemory2D<float> LoadMatrix(string variableName)
 		{
 			var entry = m_Entries[variableName];
+
+			if (entry.DataType != 1)
+				throw new Exception("Not a float array");
+
 			using var br = new BinaryReader(File.OpenRead($"{m_BaseFileName}.data-00000-of-00001"));
 			br.BaseStream.Seek((long)entry.DataOffset, SeekOrigin.Begin);
 			var data = br.ReadBytes((int)entry.DataSize);

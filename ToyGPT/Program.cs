@@ -40,34 +40,34 @@ class Program
 	private static void Run(DirectoryInfo modelDir, CancellationToken ct)
 	{
 		Console.WriteLine("Loading...");
+		var mr = new CkptReader(Path.Join(modelDir.FullName, "model.ckpt"));
 		var hParams = HParams.ReadJson(Path.Join(modelDir.FullName, "hparams.json"));
-		var model = SavedData.ReadBinary(Path.Join(modelDir.FullName, "model.bin"));
 		var encoder = LoadEncoder(modelDir);
 
 		var random = new Random();
 
-		var wte = model.LoadMatrix("model/wte");
-		var wpe = model.LoadMatrix("model/wpe");
-		var ln_f_b = model.LoadArray($"model/ln_f/b");
-		var ln_f_g = model.LoadArray($"model/ln_f/g");
+		var wte = mr.LoadMatrix("model/wte");
+		var wpe = mr.LoadMatrix("model/wpe");
+		var ln_f_b = mr.LoadArray($"model/ln_f/b");
+		var ln_f_g = mr.LoadArray($"model/ln_f/g");
 
 		var tokenEmbedding = new LayerPositionalTokenEmbedding(wte, wpe);
 		var layers = new List<TransformerBlock>();
 
 		for (int i = 0; i < hParams.n_layer; ++i)
 		{
-			var attn_c_attn_b = model.LoadArray($"model/h{i}/attn/c_attn/b");
-			var attn_c_attn_w = model.LoadMatrix($"model/h{i}/attn/c_attn/w");
-			var attn_c_proj_b = model.LoadArray($"model/h{i}/attn/c_proj/b");
-			var attn_c_proj_w = model.LoadMatrix($"model/h{i}/attn/c_proj/w");
-			var attn_ln_1_b = model.LoadArray($"model/h{i}/ln_1/b");
-			var attn_ln_1_g = model.LoadArray($"model/h{i}/ln_1/g");
-			var attn_ln_2_b = model.LoadArray($"model/h{i}/ln_2/b");
-			var attn_ln_2_g = model.LoadArray($"model/h{i}/ln_2/g");
-			var mlp_c_fc_b = model.LoadArray($"model/h{i}/mlp/c_fc/b");
-			var mlp_c_fc_w = model.LoadMatrix($"model/h{i}/mlp/c_fc/w");
-			var mlp_c_proj_b = model.LoadArray($"model/h{i}/mlp/c_proj/b");
-			var mlp_c_proj_w = model.LoadMatrix($"model/h{i}/mlp/c_proj/w");
+			var attn_c_attn_b = mr.LoadArray($"model/h{i}/attn/c_attn/b");
+			var attn_c_attn_w = mr.LoadMatrixT($"model/h{i}/attn/c_attn/w");
+			var attn_c_proj_b = mr.LoadArray($"model/h{i}/attn/c_proj/b");
+			var attn_c_proj_w = mr.LoadMatrixT($"model/h{i}/attn/c_proj/w");
+			var attn_ln_1_b = mr.LoadArray($"model/h{i}/ln_1/b");
+			var attn_ln_1_g = mr.LoadArray($"model/h{i}/ln_1/g");
+			var attn_ln_2_b = mr.LoadArray($"model/h{i}/ln_2/b");
+			var attn_ln_2_g = mr.LoadArray($"model/h{i}/ln_2/g");
+			var mlp_c_fc_b = mr.LoadArray($"model/h{i}/mlp/c_fc/b");
+			var mlp_c_fc_w = mr.LoadMatrixT($"model/h{i}/mlp/c_fc/w");
+			var mlp_c_proj_b = mr.LoadArray($"model/h{i}/mlp/c_proj/b");
+			var mlp_c_proj_w = mr.LoadMatrixT($"model/h{i}/mlp/c_proj/w");
 
 			layers.Add(new TransformerBlock(
 				new(attn_ln_1_g, attn_ln_1_b),

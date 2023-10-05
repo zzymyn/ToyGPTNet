@@ -32,11 +32,13 @@ class Program
 
 	private static readonly List<string> Files = new()
 	{
+		"checkpoint",
 		"hparams.json",
-		"encoder.json",
-		"vocab.bpe",
-		"model.ckpt.data-00000-of-00001",
 		"model.ckpt.index",
+		"model.ckpt.meta",
+		"vocab.bpe",
+		"encoder.json",
+		"model.ckpt.data-00000-of-00001",
 	};
 
 	private static async Task Main(string[] args)
@@ -90,11 +92,14 @@ class Program
 
 		// download files:
 		bool? allowDownloads = null;
+		bool filesMissing = false;
 		foreach (var fileName in Files)
 		{
 			var filePath = Path.Join(modelDir, fileName);
 			if (!File.Exists(filePath))
 			{
+				var url = $"{BaseDownloadUrl}/{modelName}/{fileName}";
+
 				if (allowDownloads == null)
 				{
 					Console.WriteLine("The model files are missing. Do you want to download them? [y/n]");
@@ -104,14 +109,19 @@ class Program
 				}
 				if (allowDownloads == false)
 				{
-					Console.WriteLine($"Required file {fileName} is missing.");
+					Console.WriteLine($"Required file {filePath} is missing, download it from:\n{url}\n");
+					filesMissing = true;
 					return 1;
 				}
 
-				var url = $"{BaseDownloadUrl}/{modelName}/{fileName}";
 				Console.WriteLine($"Downloading {url}...");
 				await DownloadFile(url, filePath, ct);
 			}
+		}
+
+		if (filesMissing)
+		{
+			return 1;
 		}
 
 		Console.WriteLine("Loading...");
@@ -234,11 +244,11 @@ class Program
 			{
 				var f = (float)e.BytesTransferred / e.TotalBytes.Value;
 				var bMb = (float)e.TotalBytes.Value / 1024 / 1024;
-				Console.Write($"{clearLine} {GenerateConsoleProgressBar(10, f, totalSeconds)} {f:0.0}% {aMb:0.0} MB of {bMb:0.0} MB ({aMbPerSec:0.0} MB/s)");
+				Console.Write($"{clearLine} {GenerateConsoleProgressBar(10, f)} {100 * f:0.0}% {aMb:0.0} MB of {bMb:0.0} MB ({aMbPerSec:0.0} MB/s)");
 			}
 			else
 			{
-				Console.Write($"{clearLine} {GenerateConsoleProgressBar(10, 0.0f, totalSeconds)} ?% {aMb:0.0} MB of unknown ({aMbPerSec:0.0} MB/s)");
+				Console.Write($"{clearLine} {GenerateConsoleProgressBar(10, 0.0f)} ?% {aMb:0.0} MB of unknown ({aMbPerSec:0.0} MB/s)");
 			}
 		};
 
@@ -256,16 +266,11 @@ class Program
 		File.Move($"{filePath}.download", filePath);
 	}
 
-	private static string GenerateConsoleProgressBar(int width, float progress, double totalSeconds = 0.0)
+	private static string GenerateConsoleProgressBar(int width, float progress)
 	{
 		var chars = new char[width + 2];
 		chars[0] = '▐';
 		var progressChars = "▖▌▙█";
-
-		if (totalSeconds % 1.0 > 0.5)
-		{
-			progress += 1.0f / (width * progressChars.Length);
-		}
 
 		for (int i = 0; i < width; ++i)
 		{

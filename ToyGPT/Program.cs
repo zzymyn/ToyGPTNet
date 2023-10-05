@@ -66,13 +66,15 @@ class Program
 				}
 				return v;
 			},
-			description: "Name of the model to use, one of: [124M, 355M, 774M, 1558M]",
+			description: "Name of the model to use, one of: [124M, 355M, 774M, 1558M].",
 			isDefault: true);
 
 		var rootCommand = new RootCommand
 		{
 			modelNameOption,
 		};
+
+		rootCommand.Description = "ToyGPT - a pure C# implementation of GPT-2";
 
 		rootCommand.SetHandler(async context =>
 		{

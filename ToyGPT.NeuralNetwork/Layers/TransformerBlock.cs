@@ -10,7 +10,7 @@ namespace ToyGPT.NeuralNetwork.Layers;
 public class TransformerBlock
 {
 	private readonly LayerNormalization m_MhaLn;
-	private readonly MultiheadCausalSelfAttention m_Mha;
+	private readonly MultiheadCausalSelfAttentionWithKvCache m_Mha;
 	private readonly Add m_MhaAdd = new();
 	private readonly LayerNormalization m_FfnLn;
 	private readonly PositionWiseFeedForward m_Ffn;
@@ -19,7 +19,7 @@ public class TransformerBlock
 
 	public TransformerBlock(
 		LayerNormalization mhaLn,
-		MultiheadCausalSelfAttention mha,
+		MultiheadCausalSelfAttentionWithKvCache mha,
 		LayerNormalization ffnLn,
 		PositionWiseFeedForward ffn)
 	{

@@ -45,6 +45,21 @@ public static class ArrayFactory
 		return new float[input.GetLength(0), weights.GetLength(0)];
 	}
 
+	public static void Resize2dPreservingData<T>([NotNull] ref T[,]? arr, int height, int width)
+	{
+		var newArr = new T[height, width];
+
+		if (arr != null)
+		{
+			int minY = Math.Min(arr.GetLength(0), newArr.GetLength(0));
+			int minX = Math.Min(arr.GetLength(1), newArr.GetLength(1));
+
+			arr.AsMemory2D()[0..minY, 0..minX].CopyTo(newArr.AsMemory2D()[0..minY, 0..minX]);
+		}
+
+		arr = newArr;
+	}
+
 	public static void Resize([NotNull] ref float[,]? arr, int height, int width)
 	{
 		if (arr == null || arr.GetLength(0) != height || arr.GetLength(1) != width)

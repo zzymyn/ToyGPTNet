@@ -188,14 +188,16 @@ class Program
 				continue;
 
 			Console.Write(text);
+
 			var tokens = encoder.Encode(text);
+			var tokensEaten = 0;
 
 			while (tokens.Count < hParams.n_ctx)
 			{
 				if (ct.IsCancellationRequested)
 					break;
 
-				var x = tokenEmbedding.Forward(tokens.ToArray());
+				var x = tokenEmbedding.Forward(CollectionsMarshal.AsSpan(tokens)[tokensEaten..], positionOffet: tokensEaten);
 				foreach (var layer in layers)
 				{
 					x = layer.Forward(x);
@@ -218,8 +220,13 @@ class Program
 
 				var nextText = encoder.Decode(new[] { bestToken });
 				Console.Write(nextText);
+
+				tokensEaten = tokens.Count;
 				tokens.Add(bestToken);
 			}
+
+			Console.WriteLine();
+			Console.WriteLine();
 		}
 
 		return 0;

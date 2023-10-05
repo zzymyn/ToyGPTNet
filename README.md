@@ -1,4 +1,4 @@
-# ToyGPTNEt
+# ToyGPTNet
 
 A neural networking library written in pure C# that doesn't use any Math or AI libraries, (ie no numpy, no tensorflow etc). At the moment it can run the GPT2 model on the CPU.
 

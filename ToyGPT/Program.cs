@@ -132,7 +132,7 @@ class Program
 		var hParams = HParams.ReadJson(Path.Join(modelDir, "hparams.json"));
 		var encoder = LoadEncoder(modelDir);
 
-		var random = new Random();
+		var random = new Random(42);
 
 		var wte = mr.LoadMatrix("model/wte");
 		var wpe = mr.LoadMatrix("model/wpe");
@@ -159,9 +159,14 @@ class Program
 
 			layers.Add(new TransformerBlock(
 				new(attn_ln_1_g, attn_ln_1_b),
-				new(new(attn_c_attn_w, attn_c_attn_b), new(hParams.n_head), new(attn_c_proj_w, attn_c_proj_b)),
+				new(
+					new(attn_c_attn_w, attn_c_attn_b),
+					new(hParams.n_head),
+					new(attn_c_proj_w, attn_c_proj_b)),
 				new(attn_ln_2_g, attn_ln_2_b),
-				new(new(mlp_c_fc_w, mlp_c_fc_b), new(mlp_c_proj_w, mlp_c_proj_b))));
+				new(
+					new(mlp_c_fc_w, mlp_c_fc_b),
+					new(mlp_c_proj_w, mlp_c_proj_b))));
 		}
 
 		var layerNorm = new LayerNormalization(ln_f_g, ln_f_b);
@@ -190,12 +195,12 @@ class Program
 				if (ct.IsCancellationRequested)
 					break;
 
-				var x = tokenEmbedding.Forward(CollectionsMarshal.AsSpan(tokens));
+				var x = tokenEmbedding.Forward(tokens.ToArray());
 				foreach (var layer in layers)
 				{
-					x = layer.Forward(x.Span);
+					x = layer.Forward(x);
 				}
-				x = layerNorm.Forward(x.Span);
+				x = layerNorm.Forward(x);
 				x = finalOutput.Forward(x);
 
 				// top-3 sampling:

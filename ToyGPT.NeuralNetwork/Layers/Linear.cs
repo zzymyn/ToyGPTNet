@@ -25,8 +25,6 @@ public sealed class Linear
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
 		ArrayFactory.Resize(ref m_Outputs, inputs.Height, m_Weights.Width);
-		ArrayFactory.Resize(ref m_DInputs, inputs.Height, m_Weights.Height);
-		ArrayFactory.Resize(ref m_DWeights, m_Weights.Height, m_Weights.Width);
 
 		MMath.MulMM(inputs, m_Weights.Span, m_Outputs);
 
@@ -35,6 +33,9 @@ public sealed class Linear
 
 	public ReadOnlyMemory2D<float> Backward(ReadOnlyMemory2D<float> inputs, ReadOnlyMemory2D<float> dValues)
 	{
+		ArrayFactory.Resize(ref m_DInputs, inputs.Height, m_Weights.Height);
+		ArrayFactory.Resize(ref m_DWeights, m_Weights.Height, m_Weights.Width);
+
 		// calculate dInputs:
 		// dInputs = mul(dValues, transpose(weights));
 		//         = mul(dValues, weightsT);

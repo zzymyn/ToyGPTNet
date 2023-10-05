@@ -113,48 +113,66 @@ public static class MMath
 	/// <param name="a"></param>
 	/// <param name="b"></param>
 	/// <param name="r"></param>
-	public static void MulMT(ReadOnlyMemory2D<float> a, ReadOnlyMemory2D<float> b, Memory2D<float> r)
+	public static void MulMT(ReadOnlyMemory2D<float> a, ReadOnlyMemory2D<float> b, Memory2D<float> r, bool useParallel = true)
 	{
 		Validate.True(a.Height == r.Height);
 		Validate.True(a.Width == b.Width);
 		Validate.True(b.Height == r.Width);
 
 		var yMax = r.Height;
+
+		if (useParallel)
+		{
+			Parallel.ForEach(Partitioner.Create(0, yMax), yRange =>
+			{
+				MulMT(a, b, r, yRange.ToValueTuple());
+			});
+		}
+		else
+		{
+			MulMT(a, b, r, (0, yMax));
+		}
+	}
+
+	private static void MulMT(ReadOnlyMemory2D<float> a, ReadOnlyMemory2D<float> b, Memory2D<float> r, (int, int) yRange)
+	{
 		var xMax = r.Width;
 		var iMax = b.Width;
 		var iVMax = iMax - (iMax % VecSize);
 
-		Parallel.ForEach(Partitioner.Create(0, yMax), yRange =>
+		for (var y = yRange.Item1; y < yRange.Item2; ++y)
 		{
-			for (var y = yRange.Item1; y < yRange.Item2; ++y)
+			var a_y = a.Span.GetRowSpan(y);
+			var r_y = r.Span.GetRowSpan(y);
+
+			for (int x = 0; x < xMax; ++x)
 			{
-				var a_y = a.Span.GetRowSpan(y);
-				var r_y = r.Span.GetRowSpan(y);
+				var b_x = b.Span.GetRowSpan(x);
 
-				for (int x = 0; x < xMax; ++x)
+				var accum = Vector<float>.Zero;
+				var r_y_x = 0.0f;
+
+				int i = 0;
+
+				for (; i < iVMax; i += VecSize)
 				{
-					var b_x = b.Span.GetRowSpan(x);
+					var a_y_vec = new Vector<float>(a_y[i..]);
+					var b_x_vec = new Vector<float>(b_x[i..]);
 
-					var r_y_x = 0.0f;
-
-					int i = 0;
-
-					for (; i < iVMax; i += VecSize)
-					{
-						var a_y_vec = new Vector<float>(a_y[i..]);
-						var b_x_vec = new Vector<float>(b_x[i..]);
-						r_y_x += Vector.Dot(a_y_vec, b_x_vec);
-					}
-
-					for (; i < iMax; ++i)
-					{
-						r_y_x += a_y[i] * b_x[i];
-					}
-
-					r_y[x] = r_y_x;
+					var v = Vector.Multiply(a_y_vec, b_x_vec);
+					accum = Vector.Add(accum, v);
 				}
+
+				r_y_x += Vector.Sum(accum);
+
+				for (; i < iMax; ++i)
+				{
+					r_y_x += a_y[i] * b_x[i];
+				}
+
+				r_y[x] = r_y_x;
 			}
-		});
+		}
 	}
 
 	/// <summary>
@@ -166,7 +184,7 @@ public static class MMath
 	/// <param name="b"></param>
 	/// <param name="c"></param>
 	/// <param name="r"></param>
-	public static void MulMTAddR(ReadOnlyMemory2D<float> a, ReadOnlyMemory2D<float> b, ReadOnlyMemory<float> c, Memory2D<float> r)
+	public static void MulMTAddR(ReadOnlyMemory2D<float> a, ReadOnlyMemory2D<float> b, ReadOnlyMemory<float> c, Memory2D<float> r, bool useParallel = true)
 	{
 		Validate.True(a.Height == r.Height);
 		Validate.True(a.Width == b.Width);
@@ -174,41 +192,58 @@ public static class MMath
 		Validate.True(r.Width == c.Length);
 
 		var yMax = r.Height;
+
+		if (useParallel)
+		{
+			Parallel.ForEach(Partitioner.Create(0, yMax), yRange =>
+			{
+				MulMTAddR(a, b, c, r, yRange.ToValueTuple());
+			});
+		}
+		else
+		{
+			MulMTAddR(a, b, c, r, (0, yMax));
+		}
+	}
+
+	private static void MulMTAddR(ReadOnlyMemory2D<float> a, ReadOnlyMemory2D<float> b, ReadOnlyMemory<float> c, Memory2D<float> r, (int, int) yRange)
+	{
 		var xMax = r.Width;
 		var iMax = b.Width;
 		var iVMax = iMax - (iMax % VecSize);
 
-		Parallel.ForEach(Partitioner.Create(0, yMax), yRange =>
+		for (var y = yRange.Item1; y < yRange.Item2; ++y)
 		{
-			for (var y = yRange.Item1; y < yRange.Item2; ++y)
+			var a_y = a.Span.GetRowSpan(y);
+			var r_y = r.Span.GetRowSpan(y);
+
+			for (int x = 0; x < xMax; ++x)
 			{
-				var a_y = a.Span.GetRowSpan(y);
-				var r_y = r.Span.GetRowSpan(y);
+				var b_x = b.Span.GetRowSpan(x);
 
-				for (int x = 0; x < xMax; ++x)
+				var accum = Vector<float>.Zero;
+				var r_y_x = c.Span[x];
+
+				int i = 0;
+
+				for (; i < iVMax; i += VecSize)
 				{
-					var b_x = b.Span.GetRowSpan(x);
-
-					var r_y_x = c.Span[x];
-
-					int i = 0;
-
-					for (; i < iVMax; i += VecSize)
-					{
-						var a_y_vec = new Vector<float>(a_y[i..]);
-						var b_x_vec = new Vector<float>(b_x[i..]);
-						r_y_x += Vector.Dot(a_y_vec, b_x_vec);
-					}
-
-					for (; i < iMax; ++i)
-					{
-						r_y_x += a_y[i] * b_x[i];
-					}
-
-					r_y[x] = r_y_x;
+					var a_y_vec = new Vector<float>(a_y[i..]);
+					var b_x_vec = new Vector<float>(b_x[i..]);
+					var v = Vector.Multiply(a_y_vec, b_x_vec);
+					accum = Vector.Add(accum, v);
 				}
+
+				r_y_x += Vector.Sum(accum);
+
+				for (; i < iMax; ++i)
+				{
+					r_y_x += a_y[i] * b_x[i];
+				}
+
+				r_y[x] = r_y_x;
 			}
-		});
+		}
 	}
 
 	// r = a + b

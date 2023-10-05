@@ -24,12 +24,12 @@ public sealed class MultiheadCausalAttention
 		ArrayFactory.Resize(ref m_Outputs, qs.Height, qs.Width);
 
 		var headStep = qs.Width / m_HeadCount;
-		var h0 = 0;
 		var csaScale = 1.0f / MathF.Sqrt(headStep);
-		var tmp = new float[qs.Height, qs.Height];
 
-		for (int head = 0; head < m_HeadCount; ++head)
+		Parallel.For(0, m_HeadCount, head =>
 		{
+			var tmp = new float[qs.Height, qs.Height];
+			var h0 = head * headStep;
 			var h1 = h0 + headStep;
 
 			var q = qs[.., h0..h1];
@@ -37,7 +37,7 @@ public sealed class MultiheadCausalAttention
 			var v = vs[.., h0..h1];
 			var attn = m_Outputs.AsSpan2D()[.., h0..h1];
 
-			MMath.MulMT(q, k, tmp);
+			MMath.MulMT(q, k, tmp, useParallel: false);
 
 			for (int y = 0, yMax = qs.Height; y < yMax; ++y)
 			{
@@ -46,9 +46,7 @@ public sealed class MultiheadCausalAttention
 			}
 
 			MMath.MulMM(tmp, v.Span, attn);
-
-			h0 = h1;
-		}
+		});
 
 		return m_Outputs;
 	}

@@ -29,14 +29,14 @@ public class TransformerBlock
 		m_Ffn = ffn;
 	}
 
-	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
+	public ReadOnlyMemory2D<float> Forward(ReadOnlyMemory2D<float> inputs)
 	{
 		ArrayFactory.Resize(ref m_Outputs, inputs.Height, inputs.Width);
 
 		var mhaLnOut = m_MhaLn.Forward(inputs);
 		var mhaOut = m_Mha.Forward(mhaLnOut);
-		var mhaAddOut = m_MhaAdd.Forward(inputs, mhaOut.Span);
-		var ffnLnOut = m_FfnLn.Forward(mhaAddOut.Span);
+		var mhaAddOut = m_MhaAdd.Forward(inputs.Span, mhaOut.Span);
+		var ffnLnOut = m_FfnLn.Forward(mhaAddOut);
 		var ffnOut = m_Ffn.Forward(ffnLnOut);
 		return m_FfnAdd.Forward(mhaAddOut.Span, ffnOut.Span);
 	}

@@ -19,7 +19,7 @@ public class LayerPositionalTokenEmbedding
 		m_Wpe = wpe;
 	}
 
-	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan<int> input)
+	public ReadOnlyMemory2D<float> Forward(ReadOnlyMemory<int> input)
 	{
 		ArrayFactory.Resize(ref m_Output, input.Length, m_Wte.Width);
 
@@ -29,7 +29,7 @@ public class LayerPositionalTokenEmbedding
 		for (var y = 0; y < yMax; ++y)
 		{
 			var out_y = m_Output.GetRowSpan(y);
-			var token = input[y];
+			var token = input.Span[y];
 			var wte_row = m_Wte.Span.GetRowSpan(token);
 			var wpe_row = m_Wpe.Span.GetRowSpan(y);
 

@@ -21,7 +21,7 @@ public class LayerNormalization
 
 	public ReadOnlyMemory2D<float> Outputs => m_Outputs;
 
-	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
+	public ReadOnlyMemory2D<float> Forward(ReadOnlyMemory2D<float> inputs)
 	{
 		ArrayFactory.Resize(ref m_Outputs, inputs.Height, inputs.Width);
 
@@ -29,7 +29,7 @@ public class LayerNormalization
 
 		for (var y = 0; y < yMax; ++y)
 		{
-			var rowIn = inputs.GetRowSpan(y);
+			var rowIn = inputs.Span.GetRowSpan(y);
 			var rowOut = m_Outputs.GetRowSpan(y);
 			MMath.LayerNormalization(rowIn, m_G.Span, m_B.Span, rowOut);
 		}

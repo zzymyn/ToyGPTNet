@@ -45,34 +45,26 @@ public static class ArrayFactory
 		return new float[input.GetLength(0), weights.GetLength(0)];
 	}
 
-	public static void Resize2dPreservingData<T>([NotNull] ref T[,]? arr, int height, int width)
+	public static Memory2D<T> Resize2DPreservingData<T>([NotNull] ref T[]? buffer, int height, int width)
 	{
-		var newArr = new T[height, width];
-
-		if (arr != null)
+		if (buffer == null)
 		{
-			int minY = Math.Min(arr.GetLength(0), newArr.GetLength(0));
-			int minX = Math.Min(arr.GetLength(1), newArr.GetLength(1));
+			buffer = new T[height * width];
+		}
+		else
+		{
+			var newSize = buffer.Length;
+			while (newSize < height * width)
+			{
+				newSize *= 2;
+			}
 
-			arr.AsMemory2D()[0..minY, 0..minX].CopyTo(newArr.AsMemory2D()[0..minY, 0..minX]);
+			var newArr = new T[newSize];
+			buffer.CopyTo(newArr, 0);
+
+			buffer = newArr;
 		}
 
-		arr = newArr;
-	}
-
-	public static void Resize([NotNull] ref float[,]? arr, int height, int width)
-	{
-		if (arr == null || arr.GetLength(0) != height || arr.GetLength(1) != width)
-		{
-			arr = new float[height, width];
-		}
-	}
-
-	public static void Resize([NotNull] ref float[]? arr, int length)
-	{
-		if (arr == null || arr.Length != length)
-		{
-			arr = new float[length];
-		}
+		return new Memory2D<T>(buffer, height, width);
 	}
 }

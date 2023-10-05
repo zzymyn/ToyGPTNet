@@ -21,7 +21,7 @@ public class LayerPositionalTokenEmbedding
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan<int> input, int positionOffet = 0)
 	{
-		ArrayFactory.Resize(ref m_Output, input.Length, m_Wte.Width);
+		m_Output = new float[input.Length, m_Wte.Width];
 
 		var yMax = input.Length;
 		var xMax = m_Wte.Width;

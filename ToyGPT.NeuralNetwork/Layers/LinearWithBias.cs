@@ -29,7 +29,7 @@ public sealed class LinearWithBias
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
-		ArrayFactory.Resize(ref m_Outputs, inputs.Height, m_Weights.Width);
+		m_Outputs = new float[inputs.Height, m_Weights.Width];
 
 		MMath.MulMMAddR(inputs, m_Weights.Span, m_Biases.Span, m_Outputs);
 
@@ -38,9 +38,9 @@ public sealed class LinearWithBias
 
 	public ReadOnlyMemory2D<float> Backward(ReadOnlyMemory2D<float> inputs, ReadOnlyMemory2D<float> dValues)
 	{
-		ArrayFactory.Resize(ref m_DInputs, inputs.Height, m_Weights.Height);
-		ArrayFactory.Resize(ref m_DWeights, m_Weights.Height, m_Weights.Width);
-		ArrayFactory.Resize(ref m_DBiases, m_Biases.Length);
+		m_DInputs = new float[inputs.Height, m_Weights.Height];
+		m_DWeights = new float[m_Weights.Height, m_Weights.Width];
+		m_DBiases = new float[m_Biases.Length];
 
 		// calculate dInputs:
 		// dInputs = mul(dValues, transpose(weights));

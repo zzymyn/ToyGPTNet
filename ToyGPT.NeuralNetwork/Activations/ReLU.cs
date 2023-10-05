@@ -22,8 +22,7 @@ public sealed class ReLU
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
-		ArrayFactory.Resize(ref m_Outputs, inputs.Height, inputs.Width);
-		ArrayFactory.Resize(ref m_DInputs, inputs.Height, inputs.Width);
+		m_Outputs = new float[inputs.Height, inputs.Width];
 
 		var yMax = inputs.Height;
 
@@ -40,7 +39,7 @@ public sealed class ReLU
 	public ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues)
 	{
 		Validate.NotNull(m_Outputs);
-		Validate.NotNull(m_DInputs);
+		m_DInputs = new float[inputs.Height, inputs.Width];
 
 		var yMax = inputs.Height;
 

@@ -19,7 +19,7 @@ public sealed class CategoricalCrossEntropy
 
 	public ReadOnlyMemory<float> Forward(ReadOnlySpan2D<float> inputs, ReadOnlySpan<int> expected)
 	{
-		ArrayFactory.Resize(ref m_Losses, inputs.Height);
+		m_Losses = new float[inputs.Height];
 
 		MMath.CategoricalCrossEntropy(inputs, expected, m_Losses);
 
@@ -28,7 +28,7 @@ public sealed class CategoricalCrossEntropy
 
 	public ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan<int> expected)
 	{
-		ArrayFactory.Resize(ref m_DInputs, inputs.Height, inputs.Width);
+		m_DInputs = new float[inputs.Height, inputs.Width];
 
 		MMath.DCategoricalCrossEntropy(inputs, expected, m_DInputs);
 

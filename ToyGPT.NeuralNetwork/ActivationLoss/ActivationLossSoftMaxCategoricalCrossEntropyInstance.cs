@@ -26,9 +26,9 @@ public sealed class ActivationLossSoftMaxCategoricalCrossEntropyInstance
 
 	public ReadOnlyMemory<float> Forward(ReadOnlySpan2D<float> inputs, ReadOnlySpan<int> expected)
 	{
-		ArrayFactory.Resize(ref m_SoftMaxOutput, inputs.Height, inputs.Width);
-		ArrayFactory.Resize(ref m_Losses, inputs.Height);
-		ArrayFactory.Resize(ref m_DInputs, inputs.Height, inputs.Width);
+		m_SoftMaxOutput = new float[inputs.Height, inputs.Width];
+		m_Losses = new float[inputs.Height];
+		m_DInputs = new float[inputs.Height, inputs.Width];
 
 		MMath.Softmax(inputs, m_SoftMaxOutput);
 		MMath.CategoricalCrossEntropy(m_SoftMaxOutput, expected, m_Losses);

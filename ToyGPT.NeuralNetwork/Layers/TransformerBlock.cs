@@ -15,7 +15,6 @@ public class TransformerBlock
 	private readonly LayerNormalization m_FfnLn;
 	private readonly PositionWiseFeedForward m_Ffn;
 	private readonly Add m_FfnAdd = new();
-	private float[,]? m_Outputs;
 
 	public TransformerBlock(
 		LayerNormalization mhaLn,
@@ -31,8 +30,6 @@ public class TransformerBlock
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlyMemory2D<float> inputs)
 	{
-		ArrayFactory.Resize(ref m_Outputs, inputs.Height, inputs.Width);
-
 		var mhaLnOut = m_MhaLn.Forward(inputs);
 		var mhaOut = m_Mha.Forward(mhaLnOut);
 		var mhaAddOut = m_MhaAdd.Forward(inputs.Span, mhaOut.Span);

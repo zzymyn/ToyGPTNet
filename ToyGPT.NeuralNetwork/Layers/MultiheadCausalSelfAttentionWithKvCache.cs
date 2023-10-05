@@ -12,8 +12,7 @@ public sealed class MultiheadCausalSelfAttentionWithKvCache
 	private readonly LinearWeightsTransposedWithBias m_Up;
 	private readonly MultiheadCausalAttention m_Attn;
 	private readonly LinearWeightsTransposedWithBias m_Down;
-	private float[,]? m_Ks;
-	private float[,]? m_Vs;
+	private ReadOnlyMemory2D<float> m_PrevKVs;
 
 	public MultiheadCausalSelfAttentionWithKvCache(
 		LinearWeightsTransposedWithBias up,
@@ -31,8 +30,7 @@ public sealed class MultiheadCausalSelfAttentionWithKvCache
 	// TODO: need a better way of resetting this on the next prompt?
 	public void ClearKvCache()
 	{
-		m_Ks = null;
-		m_Vs = null;
+		m_PrevKVs = default;
 	}
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlyMemory2D<float> inputs)
@@ -40,19 +38,23 @@ public sealed class MultiheadCausalSelfAttentionWithKvCache
 		var projection = m_Up.Forward(inputs);
 		var qvkStep = projection.Width / 3;
 
-		var prevCacheRows = m_Ks?.GetLength(0) ?? 0;
-
-		ArrayFactory.Resize2dPreservingData(ref m_Ks, prevCacheRows + inputs.Height, qvkStep);
-		ArrayFactory.Resize2dPreservingData(ref m_Vs, prevCacheRows + inputs.Height, qvkStep);
-
 		var qs = projection[.., 0..qvkStep];
-		var ks = projection[.., qvkStep..(qvkStep * 2)];
-		var vs = projection[.., (qvkStep * 2)..];
+		var kvs = projection[.., qvkStep..];
 
-		ks.CopyTo(m_Ks.AsMemory2D()[prevCacheRows.., ..]);
-		vs.CopyTo(m_Vs.AsMemory2D()[prevCacheRows.., ..]);
+		var prevCacheRows = m_PrevKVs.Height;
+		var newKvs = new float[prevCacheRows + inputs.Height, 2 * qvkStep].AsMemory2D();
 
-		var attnOut = m_Attn.Forward(qs, m_Ks, m_Vs, causalOffset: prevCacheRows);
+		if (prevCacheRows > 0)
+		{
+			m_PrevKVs.CopyTo(newKvs[0..prevCacheRows, ..]);
+		}
+		kvs.CopyTo(newKvs[prevCacheRows.., ..]);
+		m_PrevKVs = newKvs;
+
+		var ks = newKvs[.., ..qvkStep];
+		var vs = newKvs[.., qvkStep..];
+
+		var attnOut = m_Attn.Forward(qs, ks, vs, causalOffset: prevCacheRows);
 
 		return m_Down.Forward(attnOut);
 	}

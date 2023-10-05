@@ -19,7 +19,7 @@ public sealed class GeLU
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
-		ArrayFactory.Resize(ref m_Outputs, inputs.Height, inputs.Width);
+		m_Outputs = new float[inputs.Height, inputs.Width];
 
 		var yMax = inputs.Height;
 

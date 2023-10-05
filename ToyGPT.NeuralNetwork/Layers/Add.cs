@@ -19,7 +19,7 @@ public sealed class Add
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> a, ReadOnlySpan2D<float> b)
 	{
-		ArrayFactory.Resize(ref m_Outputs, a.Height, a.Width);
+		m_Outputs = new float[a.Height, a.Width];
 
 		MMath.Add(a, b, m_Outputs);
 

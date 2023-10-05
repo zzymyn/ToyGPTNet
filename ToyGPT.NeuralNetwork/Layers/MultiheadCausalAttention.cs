@@ -21,7 +21,7 @@ public sealed class MultiheadCausalAttention
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlyMemory2D<float> qs, ReadOnlyMemory2D<float> ks, ReadOnlyMemory2D<float> vs, int causalOffset = 0)
 	{
-		ArrayFactory.Resize(ref m_Outputs, qs.Height, qs.Width);
+		m_Outputs = new float[qs.Height, qs.Width];
 
 		var headStep = qs.Width / m_HeadCount;
 		var csaScale = 1.0f / MathF.Sqrt(headStep);

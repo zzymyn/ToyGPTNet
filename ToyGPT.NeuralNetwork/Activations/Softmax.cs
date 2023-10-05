@@ -22,7 +22,7 @@ public sealed class Softmax
 
 	public ReadOnlyMemory2D<float> Forward(ReadOnlySpan2D<float> inputs)
 	{
-		ArrayFactory.Resize(ref m_Outputs, inputs.Height, inputs.Width);
+		m_Outputs = new float[inputs.Height, inputs.Width];
 
 		MMath.Softmax(inputs, m_Outputs);
 
@@ -32,7 +32,7 @@ public sealed class Softmax
 	public ReadOnlyMemory2D<float> Backward(ReadOnlySpan2D<float> inputs, ReadOnlySpan2D<float> dValues)
 	{
 		Validate.NotNull(m_Outputs);
-		ArrayFactory.Resize(ref m_DInputs, inputs.Height, inputs.Width);
+		m_DInputs = new float[inputs.Height, inputs.Width];
 
 		MMath.DSoftmax(m_Outputs, dValues, m_DInputs);
 

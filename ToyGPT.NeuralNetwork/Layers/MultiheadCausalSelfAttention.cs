@@ -32,7 +32,7 @@ public sealed class MultiheadCausalSelfAttention
 
 		var qvkStep = projection.Width / 3;
 
-		var qs = projection[.., 0..qvkStep];
+		var qs = projection[.., ..qvkStep];
 		var ks = projection[.., qvkStep..(qvkStep * 2)];
 		var vs = projection[.., (qvkStep * 2)..];
 

@@ -38,7 +38,7 @@ public sealed class MultiheadCausalSelfAttentionWithKvCache
 		var projection = m_Up.Forward(inputs);
 		var qvkStep = projection.Width / 3;
 
-		var qs = projection[.., 0..qvkStep];
+		var qs = projection[.., ..qvkStep];
 		var kvs = projection[.., qvkStep..];
 
 		var prevCacheRows = m_PrevKVs.Height;
@@ -46,7 +46,7 @@ public sealed class MultiheadCausalSelfAttentionWithKvCache
 
 		if (prevCacheRows > 0)
 		{
-			m_PrevKVs.CopyTo(newKvs[0..prevCacheRows, ..]);
+			m_PrevKVs.CopyTo(newKvs[..prevCacheRows, ..]);
 		}
 		kvs.CopyTo(newKvs[prevCacheRows.., ..]);
 		m_PrevKVs = newKvs;

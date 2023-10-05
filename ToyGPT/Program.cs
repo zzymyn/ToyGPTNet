@@ -141,6 +141,7 @@ class Program
 
 		var tokenEmbedding = new LayerPositionalTokenEmbedding(wte, wpe);
 		var layers = new List<TransformerBlock>();
+		var mhas = new List<MultiheadCausalSelfAttentionWithKvCache>();
 
 		for (int i = 0; i < hParams.n_layer; ++i)
 		{
@@ -157,12 +158,14 @@ class Program
 			var mlp_c_proj_b = mr.LoadArray($"model/h{i}/mlp/c_proj/b");
 			var mlp_c_proj_w = mr.LoadMatrixT($"model/h{i}/mlp/c_proj/w");
 
+			var mha = new MultiheadCausalSelfAttentionWithKvCache(
+				new(attn_c_attn_w, attn_c_attn_b),
+				new(hParams.n_head),
+				new(attn_c_proj_w, attn_c_proj_b));
+
 			layers.Add(new TransformerBlock(
 				new(attn_ln_1_g, attn_ln_1_b),
-				new(
-					new(attn_c_attn_w, attn_c_attn_b),
-					new(hParams.n_head),
-					new(attn_c_proj_w, attn_c_proj_b)),
+				mha,
 				new(attn_ln_2_g, attn_ln_2_b),
 				new(
 					new(mlp_c_fc_w, mlp_c_fc_b),
@@ -191,6 +194,10 @@ class Program
 
 			var tokens = encoder.Encode(text);
 			var tokensEaten = 0;
+			foreach (var mha in mhas)
+			{
+				mha.ClearKvCache(); // TODO: make this nicer
+			}
 
 			while (tokens.Count < hParams.n_ctx)
 			{

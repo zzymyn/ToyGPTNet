@@ -28,6 +28,13 @@ public sealed class MultiheadCausalSelfAttentionWithKvCache
 
 	public ReadOnlyMemory2D<float> Outputs => m_Down.Outputs;
 
+	// TODO: need a better way of resetting this on the next prompt?
+	public void ClearKvCache()
+	{
+		m_Ks = null;
+		m_Vs = null;
+	}
+
 	public ReadOnlyMemory2D<float> Forward(ReadOnlyMemory2D<float> inputs)
 	{
 		var projection = m_Up.Forward(inputs);

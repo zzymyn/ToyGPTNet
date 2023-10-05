@@ -361,5 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/Data/124M
-/Data/355M
+
+/Data

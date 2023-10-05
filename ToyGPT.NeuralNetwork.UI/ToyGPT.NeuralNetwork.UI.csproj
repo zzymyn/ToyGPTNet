@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Model\**" />
+    <Compile Remove="View\**" />
+    <EmbeddedResource Remove="Model\**" />
+    <EmbeddedResource Remove="View\**" />
+    <None Remove="Model\**" />
+    <None Remove="View\**" />
+    <Page Remove="Model\**" />
+    <Page Remove="View\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Graphics" Version="7.0.92" />
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="7.0.92" />
+    <PackageReference Include="SkiaSharp.Views.WPF" Version="2.88.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ToyGPT.NeuralNetwork\ToyGPT.NeuralNetwork.csproj" />
+  </ItemGroup>
+
+</Project>

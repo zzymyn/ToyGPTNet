@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.IO;
 using System.Diagnostics;
 using CommunityToolkit.HighPerformance;
 using ToyGPT.Lib;
@@ -11,37 +12,111 @@ using System.Text.Json.Nodes;
 using ToyGPT.NeuralNetwork.Layers;
 using System.Runtime.InteropServices;
 using ToyGPT.NeuralNetwork.Activations;
+using System.Net;
+using System.Net.Http.Handlers;
+using System.Text;
 
 namespace ToyGPT;
 
 class Program
 {
+	private const string BaseDownloadUrl = @"https://openaipublic.blob.core.windows.net/gpt-2/models";
+
+	private static readonly List<string> Models = new()
+	{
+		"124M",
+		"355M",
+		"774M",
+		"1558M",
+	};
+
+	private static readonly List<string> Files = new()
+	{
+		"hparams.json",
+		"encoder.json",
+		"vocab.bpe",
+		"model.ckpt.data-00000-of-00001",
+		"model.ckpt.index",
+	};
+
 	private static async Task Main(string[] args)
 	{
-		var modelDirOption = new Option<DirectoryInfo>("--model-dir", "Directory containing the model files");
+		try
+		{
+			Console.OutputEncoding = Encoding.UTF8;
+		}
+		catch (Exception)
+		{
+		}
+
+		var modelNameOption = new Option<string>(
+			"--model",
+			parse =>
+			{
+				if (parse.Tokens.Count == 0)
+				{
+					return Models[0];
+				}
+				var v = parse.Tokens[^1].Value;
+				if (!Models.Contains(v))
+				{
+					throw new ArgumentException($"Invalid model name: {v}");
+				}
+				return v;
+			},
+			description: "Name of the model to use, one of: [124M, 355M, 774M, 1558M]",
+			isDefault: true);
 
 		var rootCommand = new RootCommand
 		{
-			modelDirOption,
+			modelNameOption,
 		};
 
 		rootCommand.SetHandler(async context =>
 		{
 			var ct = context.GetCancellationToken();
-			var console = context.Console;
-			var modelDir = context.ParseResult.GetValueForOption(modelDirOption) ?? new DirectoryInfo(Environment.CurrentDirectory);
 
-			Run(modelDir, ct);
+			var modelName = context.ParseResult.GetValueForOption(modelNameOption) ?? "124M";
+
+			context.ExitCode = await Run(modelName, ct);
 		});
 
 		await rootCommand.InvokeAsync(args);
 	}
 
-	private static void Run(DirectoryInfo modelDir, CancellationToken ct)
+	private static async Task<int> Run(string modelName, CancellationToken ct)
 	{
+		var modelDir = Path.Join("Data", modelName);
+
+		// download files:
+		bool? allowDownloads = null;
+		foreach (var fileName in Files)
+		{
+			var filePath = Path.Join(modelDir, fileName);
+			if (!File.Exists(filePath))
+			{
+				if (allowDownloads == null)
+				{
+					Console.WriteLine("The model files are missing. Do you want to download them? [y/n]");
+					var key = Console.ReadKey();
+					Console.WriteLine();
+					allowDownloads = key.Key == ConsoleKey.Y;
+				}
+				if (allowDownloads == false)
+				{
+					Console.WriteLine($"Required file {fileName} is missing.");
+					return 1;
+				}
+
+				var url = $"{BaseDownloadUrl}/{modelName}/{fileName}";
+				Console.WriteLine($"Downloading {url}...");
+				await DownloadFile(url, filePath, ct);
+			}
+		}
+
 		Console.WriteLine("Loading...");
-		var mr = new CkptReader(Path.Join(modelDir.FullName, "model.ckpt"));
-		var hParams = HParams.ReadJson(Path.Join(modelDir.FullName, "hparams.json"));
+		var mr = new CkptReader(Path.Join(modelDir, "model.ckpt"));
+		var hParams = HParams.ReadJson(Path.Join(modelDir, "hparams.json"));
 		var encoder = LoadEncoder(modelDir);
 
 		var random = new Random();
@@ -91,6 +166,9 @@ class Program
 
 			text = text.TrimEnd();
 
+			if (text == "")
+				continue;
+
 			Console.Write(text);
 			var tokens = encoder.Encode(text);
 
@@ -107,10 +185,8 @@ class Program
 				x = layerNorm.Forward(x.Span);
 				x = finalOutput.Forward(x);
 
-				// greedy sampling:
-				var lastRow = x.Span.GetRowSpan(x.Height - 1);
-
-				var options = lastRow.ToArray()
+				// top-3 sampling:
+				var options = x.Span.GetRowSpan(x.Height - 1).ToArray()
 					.Select((a, i) => (a, i))
 					.OrderByDescending(a => a.a)
 					.Take(3).ToList();
@@ -127,14 +203,97 @@ class Program
 				tokens.Add(bestToken);
 			}
 		}
+
+		return 0;
 	}
 
-	private static BpeEncoder LoadEncoder(DirectoryInfo modelDir)
+	private static async Task DownloadFile(string url, string filePath, CancellationToken ct)
 	{
-		var encoderData = JsonNode.Parse(File.ReadAllText(Path.Join(modelDir.FullName, "encoder.json"))) as JsonObject;
+		var dir = Path.GetDirectoryName(filePath);
+		if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+		{
+			Directory.CreateDirectory(dir);
+		}
+
+		var handler = new HttpClientHandler();
+		var ph = new ProgressMessageHandler(handler);
+
+		var clearLine = $"\r{new string(' ', 60)}\r";
+
+		Console.Write($"{clearLine} {GenerateConsoleProgressBar(10, 0.0f)} Starting download...");
+
+		var startTime = Stopwatch.StartNew();
+
+		ph.HttpReceiveProgress += (_, e) =>
+		{
+			var aMb = (float)e.BytesTransferred / 1024 / 1024;
+			var totalSeconds = startTime.Elapsed.TotalSeconds;
+			var aMbPerSec = aMb / totalSeconds;
+
+			if (e.TotalBytes != null)
+			{
+				var f = (float)e.BytesTransferred / e.TotalBytes.Value;
+				var bMb = (float)e.TotalBytes.Value / 1024 / 1024;
+				Console.Write($"{clearLine} {GenerateConsoleProgressBar(10, f, totalSeconds)} {f:0.0}% {aMb:0.0} MB of {bMb:0.0} MB ({aMbPerSec:0.0} MB/s)");
+			}
+			else
+			{
+				Console.Write($"{clearLine} {GenerateConsoleProgressBar(10, 0.0f, totalSeconds)} ?% {aMb:0.0} MB of unknown ({aMbPerSec:0.0} MB/s)");
+			}
+		};
+
+		var client = new HttpClient(ph);
+
+		using (var s = await client.GetStreamAsync(url, ct))
+		using (var fs = File.Create($"{filePath}.download"))
+		{
+			await s.CopyToAsync(fs, ct);
+		}
+
+		Console.Write($"{clearLine} done");
+		Console.WriteLine();
+
+		File.Move($"{filePath}.download", filePath);
+	}
+
+	private static string GenerateConsoleProgressBar(int width, float progress, double totalSeconds = 0.0)
+	{
+		var chars = new char[width + 2];
+		chars[0] = '▐';
+		var progressChars = "▖▌▙█";
+
+		if (totalSeconds % 1.0 > 0.5)
+		{
+			progress += 1.0f / (width * progressChars.Length);
+		}
+
+		for (int i = 0; i < width; ++i)
+		{
+			var t0 = (float)i / width;
+			var t1 = (float)(i + 1) / width;
+			var subT = (progress - t0) / (t1 - t0);
+
+			if (subT <= 0.0f)
+			{
+				chars[i + 1] = ' ';
+			}
+			else
+			{
+				chars[i + 1] = progressChars[Math.Min((int)(subT * progressChars.Length), progressChars.Length - 1)];
+			}
+		}
+
+		chars[^1] = '▌';
+
+		return new string(chars);
+	}
+
+	private static BpeEncoder LoadEncoder(string modelDir)
+	{
+		var encoderData = JsonNode.Parse(File.ReadAllText(Path.Join(modelDir, "encoder.json"))) as JsonObject;
 		var encoding = encoderData!.ToDictionary(a => a.Key, a => (int)a.Value!);
 
-		var vocabData = File.ReadAllLines(Path.Join(modelDir.FullName, "vocab.bpe"));
+		var vocabData = File.ReadAllLines(Path.Join(modelDir, "vocab.bpe"));
 		var bpes = vocabData
 			.Where(a => !a.StartsWith("#"))
 			.Select(a => a.Split(" "))

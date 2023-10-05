@@ -183,7 +183,7 @@ internal class RootViewModel
 				float XToDraw(float x) => (x - AxisXMin) / (AxisXMax - AxisXMin) * width;
 				float YToDraw(float y) => (y - AxisYMin) / (AxisYMax - AxisYMin) * height;
 				float DrawToX(float px) => (px / width) * (AxisXMax - AxisXMin) + AxisXMin;
-				float DrawToY(float py) => (py / height) * (AxisYMax - AxisYMin) + AxisYMin;
+				//float DrawToY(float py) => (py / height) * (AxisYMax - AxisYMin) + AxisYMin;
 
 				canvas.FillColor = Colors.NavajoWhite;
 				canvas.FillRectangle(0, 0, width, height);

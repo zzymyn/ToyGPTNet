@@ -140,10 +140,10 @@ class Program
 		var ln_f_g = mr.LoadArray($"model/ln_f/g");
 
 		var tokenEmbedding = new LayerPositionalTokenEmbedding(wte, wpe);
-		var layers = new List<TransformerBlock>();
-		var mhas = new List<MultiheadCausalSelfAttentionWithKvCache>();
+		var layers = new TransformerBlock[hParams.n_layer];
+		var mhas = new MultiheadCausalSelfAttentionWithKvCache[hParams.n_layer];
 
-		for (int i = 0; i < hParams.n_layer; ++i)
+		Parallel.For(0, hParams.n_layer, i =>
 		{
 			var attn_c_attn_b = mr.LoadArray($"model/h{i}/attn/c_attn/b");
 			var attn_c_attn_w = mr.LoadMatrixT($"model/h{i}/attn/c_attn/w");
@@ -162,16 +162,16 @@ class Program
 				new(attn_c_attn_w, attn_c_attn_b),
 				new(hParams.n_head),
 				new(attn_c_proj_w, attn_c_proj_b));
-			mhas.Add(mha);
+			mhas[i] = mha;
 
-			layers.Add(new TransformerBlock(
+			layers[i] = new TransformerBlock(
 				new(attn_ln_1_g, attn_ln_1_b),
 				mha,
 				new(attn_ln_2_g, attn_ln_2_b),
 				new(
 					new(mlp_c_fc_w, mlp_c_fc_b),
-					new(mlp_c_proj_w, mlp_c_proj_b))));
-		}
+					new(mlp_c_proj_w, mlp_c_proj_b)));
+		});
 
 		var layerNorm = new LayerNormalization(ln_f_g, ln_f_b);
 		var finalOutput = new LinearWeightsTransposed(wte);

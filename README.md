@@ -11,3 +11,5 @@ dotnet run --project ToyGPT -c Release
 ```
 
 By default the 124M GPT2 model will be loaded from `Data/124M`, if the files don't exist, you will be asked if you want the files to be downloaded.
+
+Note that due to only running on the CPU, the performance can get quite slow as the input/output gets longer.

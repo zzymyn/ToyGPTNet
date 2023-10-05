@@ -111,11 +111,12 @@ class Program
 				{
 					Console.WriteLine($"Required file {filePath} is missing, download it from:\n{url}\n");
 					filesMissing = true;
-					return 1;
 				}
-
-				Console.WriteLine($"Downloading {url}...");
-				await DownloadFile(url, filePath, ct);
+				else
+				{
+					Console.WriteLine($"Downloading {url}...");
+					await DownloadFile(url, filePath, ct);
+				}
 			}
 		}
 

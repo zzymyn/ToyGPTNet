@@ -162,6 +162,7 @@ class Program
 				new(attn_c_attn_w, attn_c_attn_b),
 				new(hParams.n_head),
 				new(attn_c_proj_w, attn_c_proj_b));
+			mhas.Add(mha);
 
 			layers.Add(new TransformerBlock(
 				new(attn_ln_1_g, attn_ln_1_b),

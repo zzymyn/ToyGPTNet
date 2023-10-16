@@ -52,4 +52,26 @@ internal class ActivationLossSoftMaxCategoricalCrossEntropyTests
 
 		Assert.That(dInputsA, Is.EqualTo(dInputsB).Within(0.00001f));
 	}
+	
+	[Test]
+	public void BackwardTest3()
+	{
+		var softmaxR = new float[,] {
+			{ 0.7f, 0.1f, 0.2f },
+			{ 0.1f, 0.5f, 0.4f },
+		};
+		var targets = new int[] { 0, 2 };
+		var dCce = new float[] { -1.0f, 2.5f };
+		var dInputsA = ArrayFactory.NewSameSize(softmaxR);
+		var dInputsB = ArrayFactory.NewSameSize(softmaxR);
+
+		MMath.DSoftMaxCategoricalCrossEntropy(targets, softmaxR, dCce, dInputsA);
+
+		var dSoftmaxR = ArrayFactory.NewSameSize(softmaxR);
+
+		MMath.DCategoricalCrossEntropy(softmaxR, targets, dCce, dSoftmaxR);
+		MMath.DSoftmax(softmaxR, dSoftmaxR, dInputsB);
+
+		Assert.That(dInputsA, Is.EqualTo(dInputsB).Within(0.00001f));
+	}
 }

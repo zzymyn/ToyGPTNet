@@ -614,6 +614,35 @@ public static class MMath
 		}
 	}
 
+	public static void DCategoricalCrossEntropy(ReadOnlySpan2D<float> a, ReadOnlySpan<int> e, ReadOnlySpan<float> dR, Span2D<float> dA)
+	{
+		Validate.True(e.Length == a.Height);
+		Validate.True(a.Height == dA.Height);
+		Validate.True(a.Width == dA.Width);
+		Validate.True(dR.Length == e.Length);
+
+		var yMax = dA.Height;
+		var xMax = dA.Width;
+		for (var y = 0; y < yMax; ++y)
+		{
+			var a_y = a.GetRowSpan(y);
+			var dA_y = dA.GetRowSpan(y);
+			var category = e[y];
+
+			if (category < 0 || category > xMax)
+				throw new ArgumentException(null, nameof(e));
+
+			for (var x = 0; x < xMax; ++x)
+			{
+				dA_y[x] = 0.0f;
+			}
+
+			var a_y_category = a_y[category];
+
+			dA_y[category] = dR[y] * (a_y_category != 0.0f ? -1.0f / a_y_category : 0.0f) / yMax;
+		}
+	}
+
 	public static void DSoftMaxCategoricalCrossEntropy(ReadOnlySpan<int> expected, ReadOnlySpan2D<float> dValues, Span2D<float> dInputs)
 	{
 		Validate.True(expected.Length == dInputs.Height);
@@ -637,6 +666,34 @@ public static class MMath
 				if (x == category)
 					a -= 1.0f;
 				rowDIn[x] = a / yMax;
+			}
+		}
+	}
+
+	public static void DSoftMaxCategoricalCrossEntropy(ReadOnlySpan<int> e, ReadOnlySpan2D<float> b, ReadOnlySpan<float> dR, Span2D<float> dA)
+	{
+		Validate.True(e.Length == dA.Height);
+		Validate.True(dA.Height == b.Height);
+		Validate.True(dA.Width == b.Width);
+		Validate.True(dR.Length == e.Length);
+
+		var yMax = dA.Height;
+		var xMax = dA.Width;
+		for (var y = 0; y < yMax; ++y)
+		{
+			var b_y = b.GetRowSpan(y);
+			var dA_y = dA.GetRowSpan(y);
+			var category = e[y];
+
+			if (category < 0 || category > xMax)
+				throw new ArgumentException(null, nameof(e));
+
+			for (var x = 0; x < xMax; ++x)
+			{
+				var a = b_y[x];
+				if (x == category)
+					a -= 1.0f;
+				dA_y[x] = dR[y] * a / yMax;
 			}
 		}
 	}

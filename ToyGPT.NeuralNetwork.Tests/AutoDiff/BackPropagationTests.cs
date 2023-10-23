@@ -32,7 +32,7 @@ internal class BackPropagationTests
 		var vInputs = V(inputs);
 		var vWeights = V(weights);
 		var vBiases = V(biases);
-		var op = ReLU(MulMTAddR(vInputs, vWeights, vBiases));
+		var op = ReLU(MatMulMTAddR(vInputs, vWeights, vBiases));
 		var ctx = new ExpressionContext();
 
 		var reluOutput = ctx.GetResult(op);

@@ -25,7 +25,7 @@ internal class MulMTAddRTests
 		var inputs = new float[,] { { 1.0f, 2.0f, 3.0f, 2.5f } };
 		var expected = new float[,] { { 4.8f, 1.21f, 2.385f } };
 
-		var op = MulMTAddR(V(inputs), V(weights), V(biases));
+		var op = MatMulMTAddR(V(inputs), V(weights), V(biases));
 		var ctx = new ExpressionContext();
 
 		var output = ctx.GetResult(op).ToArray();
@@ -54,7 +54,7 @@ internal class MulMTAddRTests
 			{ 1.41f, 1.051f, 0.026f },
 		};
 
-		var op = MulMTAddR(V(inputs), V(weights), V(biases));
+		var op = MatMulMTAddR(V(inputs), V(weights), V(biases));
 		var ctx = new ExpressionContext();
 
 		var output = ctx.GetResult(op).ToArray();
@@ -98,7 +98,7 @@ internal class MulMTAddRTests
 		var vInputs = V(inputs);
 		var vWeights = V(weights);
 		var vBiases = V(biases);
-		var op = MulMTAddR(vInputs, vWeights, vBiases);
+		var op = MatMulMTAddR(vInputs, vWeights, vBiases);
 		var ctx = new ExpressionContext();
 
 		ctx.GetResult(op);
@@ -146,7 +146,7 @@ internal class MulMTAddRTests
 		var vInputs = V(inputs);
 		var vWeights = V(weights);
 		var vBiases = V(biases);
-		var op = MulMTAddR(vInputs, vWeights, vBiases);
+		var op = MatMulMTAddR(vInputs, vWeights, vBiases);
 		var ctx = new ExpressionContext();
 
 		ctx.GetResult(op);

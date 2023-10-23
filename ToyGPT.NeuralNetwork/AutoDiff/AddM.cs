@@ -7,9 +7,6 @@ namespace ToyGPT.NeuralNetwork.AutoDiff
 	{
 		private readonly IExpression<ReadOnlyMemory2D<float>> m_A;
 		private readonly IExpression<ReadOnlyMemory2D<float>> m_B;
-		private float[,]? m_Result;
-
-		public ReadOnlyMemory2D<float> Result => m_Result;
 
 		public AddM(IExpression<ReadOnlyMemory2D<float>> a, IExpression<ReadOnlyMemory2D<float>> b)
 		{
@@ -22,9 +19,9 @@ namespace ToyGPT.NeuralNetwork.AutoDiff
 			var a = context.GetResult(m_A);
 			var b = context.GetResult(m_B);
 
-			m_Result = new float[a.Height, a.Width];
-			MMath.Add(a.Span, b.Span, m_Result);
-			return m_Result;
+			var result = new float[a.Height, a.Width];
+			MMath.Add(a.Span, b.Span, result);
+			return result;
 		}
 
 		public void Backward(ExpressionContext context, ReadOnlyMemory2D<float> seed)

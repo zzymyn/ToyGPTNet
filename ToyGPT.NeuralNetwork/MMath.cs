@@ -362,6 +362,41 @@ public static class MMath
 		}
 	}
 
+	public static void Scale(ReadOnlySpan2D<float> a, ReadOnlySpan2D<float> b, Span2D<float> r)
+	{
+		Validate.True(a.Height == b.Height);
+		Validate.True(a.Width == b.Width);
+		Validate.True(a.Height == r.Height);
+		Validate.True(a.Width == r.Width);
+
+		var yMax = a.Height;
+		var xMax = a.Width;
+
+		for (int y = 0; y < yMax; ++y)
+		{
+			var a_y = a.GetRowSpan(y);
+			var b_y = b.GetRowSpan(y);
+			var r_y = r.GetRowSpan(y);
+
+			for (int x = 0; x < xMax; ++x)
+			{
+				r_y[x] = a_y[x] * b_y[x];
+			}
+		}
+	}
+
+	public static void Scale(ReadOnlySpan<float> a, ReadOnlySpan<float> b, Span<float> r)
+	{
+		Validate.True(a.Length == b.Length);
+		Validate.True(a.Length == r.Length);
+
+		var iMax = a.Length;
+		for (int i = 0; i < iMax; ++i)
+		{
+			r[i] = a[i] * b[i];
+		}
+	}
+
 	public static void ReLU(ReadOnlySpan<float> a, Span<float> r)
 	{
 		Validate.True(a.Length == r.Length);
@@ -394,6 +429,23 @@ public static class MMath
 		}
 	}
 
+	public static void LayerNormalization(ReadOnlySpan<float> a, Span<float> r, float eps = 1e-5f)
+	{
+		Validate.True(a.Length == r.Length);
+
+		var iMax = a.Length;
+
+		var mean = Mean(a);
+		var variance = Variance(a, mean);
+
+		var invStd = 1.0f / MathF.Sqrt(variance + eps);
+
+		for (int i = 0; i < iMax; ++i)
+		{
+			r[i] = (a[i] - mean) * invStd;
+		}
+	}
+
 	public static void LayerNormalization(ReadOnlySpan<float> x, ReadOnlySpan<float> g, ReadOnlySpan<float> b, Span<float> r, float eps = 1e-5f)
 	{
 		Validate.True(x.Length == r.Length);
@@ -403,28 +455,84 @@ public static class MMath
 		var iMax = x.Length;
 
 		var mean = Mean(x);
-		var variance = Variance(x, mean);
+		var variance = Variance(x, mean) + eps;
 
-		var std = MathF.Sqrt(variance + eps);
+		var invStd = 1.0f / MathF.Sqrt(variance);
 
 		for (int i = 0; i < iMax; ++i)
 		{
-			r[i] = g[i] * (x[i] - mean) / std + b[i];
+			r[i] = g[i] * (x[i] - mean) * invStd + b[i];
 		}
 	}
 
-	private static float Mean(ReadOnlySpan<float> x)
+	public static void DLayerNormalization(ReadOnlySpan<float> a, ReadOnlySpan<float> dR, Span<float> dA, float eps = 1e-5f)
 	{
-		var iMax = x.Length;
+		Validate.True(a.Length == dA.Length);
+		Validate.True(a.Length == dR.Length);
+
+		var xMax = a.Length;
+
+		var mean = Mean(a);
+		var variance = Variance(a, mean) + eps;
+
+		// dA[A] = Sum of B in 0..N:
+		//  when B == A:
+		//   (N - 1) / (N * variance) - (x_A - mean) * (x_B - mean) / (N * variance ^ 3)
+		//  when B != A:
+		//   -1 / (N * variance) - (x_A - mean) * (x_B - mean) / (N * variance ^ 3)
+
+		var invNV = 1.0f / (xMax * variance);
+		var invNV3 = 1.0f / (xMax * variance * variance * variance);
+
+		for (int x = 0; x < xMax; ++x)
+		{
+			var dA_x = 0.0f;
+
+			for (int x2 = 0; x2 < xMax; ++x2)
+			{
+				float v;
+
+				if (x == x2)
+				{
+					v = (xMax - 1.0f) * invNV;
+				}
+				else
+				{
+					v = -invNV;
+				}
+
+				v += (a[x] - mean) * (a[x2] - mean) * invNV3;
+				dA_x += dR[x2] * v;
+			}
+
+			dA[x] = dA_x;
+		}
+	}
+
+	private static float Mean(ReadOnlySpan<float> a)
+	{
+		var iMax = a.Length;
 
 		var mean = 0.0f;
 
 		for (int i = 0; i < iMax; ++i)
 		{
-			mean += x[i];
+			mean += a[i];
 		}
 
 		return mean / iMax;
+	}
+
+	private static void DMean(ReadOnlySpan<float> a, float dR, Span<float> dA)
+	{
+		var iMax = a.Length;
+
+		var dMean = dR / iMax;
+
+		for (int i = 0; i < iMax; ++i)
+		{
+			dA[i] = dMean;
+		}
 	}
 
 	private static float Variance(ReadOnlySpan<float> x, float mean)

@@ -65,14 +65,24 @@ namespace ToyGPT.NeuralNetwork.AutoDiff
 			return new MulF(a, b);
 		}
 
-		public static IExpression<ReadOnlyMemory2D<float>> MulMT(IExpression<ReadOnlyMemory2D<float>> a, IExpression<ReadOnlyMemory2D<float>> b)
+		public static IExpression<ReadOnlyMemory<float>> Mul(IExpression<ReadOnlyMemory<float>> a, IExpression<ReadOnlyMemory<float>> b)
 		{
-			return new MulMT(a, b);
+			return new MulA(a, b);
 		}
 
-		public static IExpression<ReadOnlyMemory2D<float>> MulMTAddR(IExpression<ReadOnlyMemory2D<float>> a, IExpression<ReadOnlyMemory2D<float>> b, IExpression<ReadOnlyMemory<float>> c)
+		public static IExpression<ReadOnlyMemory2D<float>> Mul(IExpression<ReadOnlyMemory2D<float>> a, IExpression<ReadOnlyMemory2D<float>> b)
 		{
-			return new MulMTAddR(a, b, c);
+			return new MulM(a, b);
+		}
+
+		public static IExpression<ReadOnlyMemory2D<float>> MatMulMT(IExpression<ReadOnlyMemory2D<float>> a, IExpression<ReadOnlyMemory2D<float>> b)
+		{
+			return new MatMulMT(a, b);
+		}
+
+		public static IExpression<ReadOnlyMemory2D<float>> MatMulMTAddR(IExpression<ReadOnlyMemory2D<float>> a, IExpression<ReadOnlyMemory2D<float>> b, IExpression<ReadOnlyMemory<float>> c)
+		{
+			return new MatMulMTAddR(a, b, c);
 		}
 
 		public static IExpression<ReadOnlyMemory2D<float>> ReLU(IExpression<ReadOnlyMemory2D<float>> a)
@@ -88,6 +98,11 @@ namespace ToyGPT.NeuralNetwork.AutoDiff
 		public static IExpression<ReadOnlyMemory<float>> CategoricalCrossEntropy(IExpression<ReadOnlyMemory2D<float>> a, IExpression<ReadOnlyMemory<int>> e)
 		{
 			return new CategoricalCrossEntropy(a, e);
+		}
+
+		public static IExpression<ReadOnlyMemory<float>> LayerNorm(IExpression<ReadOnlyMemory<float>> a)
+		{
+			return new LayerNormA(a);
 		}
 	}
 }
